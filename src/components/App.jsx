@@ -1,12 +1,21 @@
 import React, { Component } from 'react';
 import { Breadcrumb, Image } from 'react-bootstrap';
+import gonebusy from 'gonebusy-nodejs-client/lib';
+import { Promise } from 'bluebird';
+
 import dogWalker from './DogWalker.svg';
 import './App.css';
+
+const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 
 class App extends Component {
   constructor() {
     super();
-    this.state = {};
+    gonebusy.configuration.BASEURI = 'http://sandbox.gonebusy.com/api/v1';
+    const token = 'Token ac98ed08b5b0a9e7c43a233aeba841ce';
+    ServicesController.getServicesAsync({ authorization: token }).then((response) => {
+      console.log('services', response);
+    });
   }
 
   render() {
