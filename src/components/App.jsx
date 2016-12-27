@@ -6,6 +6,8 @@ import BusyAdapter, { busyDefaults } from '../lib/BusyAdapter';
 import dogWalker from './DogWalker.svg';
 import './App.css';
 
+import Bookie from './Bookie.jsx';
+
 class App extends Component {
   constructor() {
     super();
@@ -35,6 +37,8 @@ class App extends Component {
               <h3 className="service-price">$10 / hour</h3>
 
               <Image src={dogWalker} responsive thumbnail />
+
+              <Bookie />
 
             </div>
           </div>
