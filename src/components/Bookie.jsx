@@ -14,18 +14,18 @@ class Bookie extends Component {
     };
   }
 
-  tupoclick() {
+  abstractClick() {
     console.log(BusyAdapter.getDummyDay().service.resources[0].available_slots.slots);
 
     if (this.state.loading) return;
-    alert('tupo clicked!');
+    alert('clicked!');
   }
 
   spawnLis(txts, curIdx) {
     return txts.map((x, idx) => {
       return <li key={x} className={idx === curIdx ? 'current' : ''}>
         {/* <a onClick={this.tupoclick.bind(this)}>{x}</a> */}
-        <a onClick={() => this.tupoclick()}>{x}</a>
+        <a onClick={() => this.abstractClick()}>{x}</a>
       </li>;
     });
   }
