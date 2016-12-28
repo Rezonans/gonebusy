@@ -37,11 +37,14 @@ class ScheduleDummy {
   }
 
   generateDaySchedule(date, filter) {
+    // m.utc().startOf('day').add(3, 'hours').add(33, 'minutes').format();
+    // m.utc('2014-11-03').format()
+    const mdate = moment.utc(date);
     let slots = [];
     for (let hour = 0; hour < 24; ++hour)
-      for (let q = 0; q < 4; ++q)
-        if (filter(hour, q))
-          slots.push(date + 'T' + hour + ':' + q + ':00Z');
+      for (let qmin = 0; qmin < 4; ++qmin)
+        if (filter(hour, qmin))
+          slots.push(moment(mdate).add(hour, 'hours').add(15 * qmin, 'minutes').format());
     return this.wrapDummy({
       date: date,
       slots: slots
