@@ -1,4 +1,23 @@
+/*reset*/
+.bookie-container ul {
+  -webkit-padding-start: 0;
+  padding-bottom: 20px;
+}
+
+
+
 .bookie-container {
-  border: 1px black solid;
+  /*border: 1px black solid;*/
   padding: 10px;
 }
+
+.bookie-container li {
+  display: inline;
+  padding: 8px;
+  border: 1px solid black;
+}
+
+.bookie-container li.current {
+  padding: 12px;
+}
+

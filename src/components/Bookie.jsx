@@ -1,57 +1,41 @@
 import React, { Component } from 'react';
 import './Bookie.css';
 
-// import { Breadcrumb, Image } from 'react-bootstrap';
-// import gonebusy from 'gonebusy-nodejs-client/lib';
-// import { Promise } from 'bluebird';
-
-// import dogWalker from './DogWalker.svg';
-
-// const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
-
 class Bookie extends Component {
   //   constructor() {
   //     super();
-  //     gonebusy.configuration.BASEURI = 'http://sandbox.gonebusy.com/api/v1';
-  //     const token = 'Token ac98ed08b5b0a9e7c43a233aeba841ce';
-  //     this.state = { serviceName: 'Shauna\'s Best in Show Dog Walking Service' }
-
-  //     ServicesController.getServicesAsync({ authorization: token }).then((response) => {
-  //       // console.log('services', response);
-  //       this.setState({ serviceName: response.services[0].name });
-  //     });
   //   }
+
+  spawnLis(txts, curIdx) {
+    return txts.map((x, idx) => {
+      return <li className={idx === curIdx ? 'current' : ''}>{x}</li>;
+    });
+  }
 
   render() {
     return (
       <div className="bookie-container">
+        <ul className="pick-day">
+          {this.spawnLis(['<<', 'Today', 'Tomorrow', 'Weekend', '>>'], 1)}
+        </ul>
+        <ul className="pick-minutes">
+          {this.spawnLis(['00', '15', '30', '45'], 2)}
+        </ul>
+        <ul className="pick-hour">
+          {this.spawnLis(['<<', '10am', '11am', '12pm', '1pm', '>>'], 3)}
+        </ul>
+        {
+          // multiple classNames
+          // editing; is-not-set etc.
+        }
+        <div className="range">
+          <span className="start pick">11:00am</span>
+          <span>&nbsp;&mdash;&nbsp;</span>
+          <span className="end pick">choose end</span>
+        </div>
+
         <div style={{ display: 'block', width: '100px', height: '100px', backgroundColor: 'red' }} />
       </div>
-
-      // <div className="container">
-      //   <div className="site-detail">
-      //     <h1>GigVillage.com</h1>
-
-      //     <Breadcrumb>
-      //       <Breadcrumb.Item>Services</Breadcrumb.Item>
-      //       <Breadcrumb.Item>Pet</Breadcrumb.Item>
-      //       <Breadcrumb.Item active>Dog Walking</Breadcrumb.Item>
-      //     </Breadcrumb>
-
-      //     <div className="row service-detail">
-      //       <div className="col-md-8">
-      //         <h2 className="service-title">{this.state.serviceName}</h2>
-
-      //         <Image src={dogWalker} responsive thumbnail />
-      //       </div>
-      //       <div className="col-md-4">
-      //         <h3 className="service-price">$10 / hour</h3>
-
-      //         <Image src={dogWalker} responsive thumbnail />
-      //       </div>
-      //     </div>
-      //   </div>
-      // </div>
     );
   }
 }
