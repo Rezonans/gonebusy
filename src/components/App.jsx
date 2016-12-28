@@ -12,7 +12,9 @@ class App extends Component {
   constructor() {
     super();
     this.state = { serviceName: busyDefaults.defaultServiceName };
-    BusyAdapter.setServiceName(this);
+    BusyAdapter.getServiceNamePromise().then((response) => {
+      this.setState({ serviceName: response.services[0].name });
+    });
   }
 
   render() {

@@ -8,23 +8,21 @@ const config = {
   token: 'Token ac98ed08b5b0a9e7c43a233aeba841ce',
 };
 
-export const busyDefaults = {
-  defaultServiceName: 'Shauna\'s Best in Show Dog Walking Service',
-};
-
 class BusyWrapper {
   constructor() {
     gonebusy.configuration.BASEURI = config.baseUri;
   }
 
-  setServiceName(component) {
-    ServicesController.getServicesAsync({ authorization: config.token }).then((response) => {
-      component.setState({ serviceName: response.services[0].name });
-    });
+  getServiceNamePromise() {
+    return ServicesController.getServicesAsync({ authorization: config.token });
   }
 }
 
 const instance = new BusyWrapper();
 Object.freeze(instance);
+
+export const busyDefaults = {
+  defaultServiceName: "Shauna's Best in Show Dog Walking Service",
+};
 
 export default instance;
