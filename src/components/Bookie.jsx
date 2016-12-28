@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Image } from 'react-bootstrap';
 
 import BusyAdapter from '../lib/BusyAdapter';
+import ScheduleDummy from '../lib/ScheduleDummy';
 
 import './Bookie.css';
 import loadingImg from './loading.gif';
@@ -11,11 +12,41 @@ class Bookie extends Component {
     super();
     this.state = {
       loading: true,
+      // loading: false,
+
+      days: ScheduleDummy.getDatesAround(),
+
+      dayPicked: null,
+      dayData: null,
+
+      startVal: null,
+      startPicking: true,
+      endVal: null,
+      endPicking: false,
     };
+
+    this.fetchDayData();
+  }
+
+  fetchDayData() {
+    const s = this.state;
+    let day = s.dayPicked || s.days[0].date;
+
+    BusyAdapter.getScheduleForDay(day).then(x => {
+
+      console.log(x);
+      this.setState({
+        dayPicked: day,
+        loading: false,
+        dayData: x,
+      });
+    });
   }
 
   abstractClick() {
-    console.log(BusyAdapter.getDummyDay().service.resources[0].available_slots.slots);
+    // console.log(BusyAdapter.getDummyDay().service.resources[0].available_slots.slots);
+
+    console.log(ScheduleDummy.getDatesAround());
 
     if (this.state.loading) return;
     alert('clicked!');
@@ -31,7 +62,11 @@ class Bookie extends Component {
   }
 
   render() {
-    return (
+    // multiple classNames
+    // editing; is-not-set etc.
+    return this.state.loading ?
+      <Image src={loadingImg} responsive thumbnail onClick={() => this.abstractClick()} />
+      :
       <div className="bookie-container">
         <ul className="pick-day">
           {this.spawnLis(['<<', 'Today', 'Tomorrow', 'Weekend', '>>'], 1)}
@@ -42,18 +77,12 @@ class Bookie extends Component {
         <ul className="pick-hour">
           {this.spawnLis(['<<', '10am', '11am', '12pm', '1pm', '>>'], 3)}
         </ul>
-        {
-          // multiple classNames
-          // editing; is-not-set etc.
-        }
         <div className="range">
           <span className="start pick">11:00am</span>
           <span>&nbsp;&mdash;&nbsp;</span>
           <span className="end pick">choose end</span>
         </div>
-        {this.state.loading ? <Image src={loadingImg} responsive thumbnail /> : null}
-      </div>
-    );
+      </div>;
   }
 }
 

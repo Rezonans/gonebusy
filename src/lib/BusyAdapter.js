@@ -22,13 +22,17 @@ class BusyWrapper {
   getDummyDay() {
     return ScheduleDummy.generateMorning('2016-12-28');
   }
+
+  getScheduleForDay(day) {
+    return new Promise(resolve => {
+      const slots = ScheduleDummy.generateMorning(day).service.resources[0].available_slots.slots;
+      setTimeout(() => {resolve(slots)}, 2500);
+      // resolve(slots);
+    });
+  }
 }
 
 const instance = new BusyWrapper();
 Object.freeze(instance);
-
-export const busyDefaults = {
-  defaultServiceName: "Shauna's Best in Show Dog Walking Service",
-};
 
 export default instance;

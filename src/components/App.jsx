@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Breadcrumb, Image } from 'react-bootstrap';
 
-import BusyAdapter, { busyDefaults } from '../lib/BusyAdapter';
+import BusyAdapter from '../lib/BusyAdapter';
+import defaults from '../lib/defaults';
 
 import dogWalker from './DogWalker.svg';
 import './App.css';
@@ -11,7 +12,7 @@ import Bookie from './Bookie.jsx';
 class App extends Component {
   constructor() {
     super();
-    this.state = { serviceName: busyDefaults.defaultServiceName };
+    this.state = { serviceName: defaults.defaultServiceName };
     BusyAdapter.getServiceNamePromise().then((response) => {
       this.setState({ serviceName: response.services[0].name });
     });

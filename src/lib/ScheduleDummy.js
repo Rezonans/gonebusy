@@ -1,6 +1,22 @@
 import moment from 'moment';
+import defaults from './defaults';
 
 class ScheduleDummy {
+  constructor() {
+    moment.locale(moment.locale(), {
+      calendar: {
+        sameDay: '[Today]',
+        nextDay: '[Tomorrow]',
+        nextWeek: 'dddd',
+        lastDay: '[Yesterday]',
+        lastWeek: '[last] dddd',
+        sameElse: 'L'
+      }
+    });
+  }
+
+  //r.map(x => x.calendar(null, {lastDay: '[last]', sameDay: '[Today]'}))
+
   wrapDummy(slots) {
     return {
       "service": {
@@ -61,6 +77,19 @@ class ScheduleDummy {
 
   generateMorning(date) {
     return this.generateDaySchedule(date, (h, q) => (h > 4 && h < 12));
+  }
+
+  getDatesAround(date) {
+    const mbase = moment.utc(date).startOf('day');
+    let r = [];
+    for (let d = 0; d < defaults.daysInList; ++d) {
+      let m = moment(mbase).add(d, 'days');
+      r.push({
+        date: m.format('YYYY-MM-DD'),
+        title: m.calendar()
+      });
+    }
+    return r;
   }
 }
 
