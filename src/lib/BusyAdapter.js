@@ -1,6 +1,8 @@
 import gonebusy from 'gonebusy-nodejs-client/lib';
 import { Promise } from 'bluebird';
 
+import ScheduleDummy from './ScheduleDummy';
+
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 
 const config = {
@@ -15,6 +17,10 @@ class BusyWrapper {
 
   getServiceNamePromise() {
     return ServicesController.getServicesAsync({ authorization: config.token });
+  }
+
+  getDummyDay() {
+    return ScheduleDummy.generateMorning('2016-12-28');
   }
 }
 

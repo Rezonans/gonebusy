@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Image } from 'react-bootstrap';
 
+import BusyAdapter from '../lib/BusyAdapter';
+
 import './Bookie.css';
 import loadingImg from './loading.gif';
 
@@ -13,14 +15,17 @@ class Bookie extends Component {
   }
 
   tupoclick() {
-    if(this.state.loading) return;
+    console.log(BusyAdapter.getDummyDay().service.resources[0].available_slots.slots);
+
+    if (this.state.loading) return;
     alert('tupo clicked!');
   }
 
   spawnLis(txts, curIdx) {
     return txts.map((x, idx) => {
       return <li key={x} className={idx === curIdx ? 'current' : ''}>
-        <a onClick={this.tupoclick}>{x}</a>
+        {/* <a onClick={this.tupoclick.bind(this)}>{x}</a> */}
+        <a onClick={() => this.tupoclick()}>{x}</a>
       </li>;
     });
   }
