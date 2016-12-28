@@ -1,14 +1,26 @@
 import React, { Component } from 'react';
+import { Image } from 'react-bootstrap';
+
 import './Bookie.css';
+import loadingImg from './loading.gif';
 
 class Bookie extends Component {
-  //   constructor() {
-  //     super();
-  //   }
+  constructor() {
+    super();
+    this.state = {
+      loading: true,
+    };
+  }
+
+  tupoclick() {
+    alert('tupo clicked!');
+  }
 
   spawnLis(txts, curIdx) {
     return txts.map((x, idx) => {
-      return <li className={idx === curIdx ? 'current' : ''}>{x}</li>;
+      return <li key={x} className={idx === curIdx ? 'current' : ''}>
+        <a onClick={this.tupoclick}>{x}</a>
+      </li>;
     });
   }
 
@@ -33,8 +45,7 @@ class Bookie extends Component {
           <span>&nbsp;&mdash;&nbsp;</span>
           <span className="end pick">choose end</span>
         </div>
-
-        <div style={{ display: 'block', width: '100px', height: '100px', backgroundColor: 'red' }} />
+        {this.state.loading ? <Image src={loadingImg} responsive thumbnail /> : null}
       </div>
     );
   }

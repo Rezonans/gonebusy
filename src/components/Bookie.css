@@ -17,7 +17,16 @@
   border: 1px solid black;
 }
 
+.bookie-container li.disabled a {
+  color: gray;
+}
+
+
 .bookie-container li.current {
   padding: 12px;
+}
+
+.bookie-container .range {
+  padding-bottom: 30px;
 }
 
