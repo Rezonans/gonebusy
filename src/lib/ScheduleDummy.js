@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 class ScheduleDummy {
   wrapDummy(slots) {
     return {
