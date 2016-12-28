@@ -13,6 +13,7 @@ class Bookie extends Component {
   }
 
   tupoclick() {
+    if(this.state.loading) return;
     alert('tupo clicked!');
   }
 
