@@ -32,13 +32,11 @@ class Bookie extends Component {
     const s = this.state;
     let day = s.dayPicked || s.days[0].date;
 
-    BusyAdapter.getScheduleForDay(day).then(x => {
-
-      console.log(x);
+    BusyAdapter.getScheduleForDay(day).then(parsedSlots => {
       this.setState({
         dayPicked: day,
         loading: false,
-        dayData: x,
+        dayData: parsedSlots,
       });
     });
   }

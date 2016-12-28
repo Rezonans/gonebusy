@@ -3,7 +3,7 @@ import defaults from './defaults';
 
 class ScheduleDummy {
   constructor() {
-    moment.locale(moment.locale(), {
+    moment.updateLocale(moment.locale(), {
       calendar: {
         sameDay: '[Today]',
         nextDay: '[Tomorrow]',
@@ -90,6 +90,22 @@ class ScheduleDummy {
       });
     }
     return r;
+  }
+
+  parseSlots(slots) {
+      // let hours = {};
+      // slots.each(val => {
+      //   let m = moment.utc(val)
+      //   const hour = m.hours();
+      //   if(!hours[hour])
+      //     hours[hour] = {q: []}
+      //   // let hour = 
+      // })
+
+      console.log(slots);
+
+
+    return slots;
   }
 }
 
