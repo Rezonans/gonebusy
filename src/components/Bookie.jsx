@@ -89,20 +89,28 @@ class Bookie extends Component {
     });
   }
 
+  wrapWithArrows(arr) {
+    return [
+      { title: '<<' },
+      ...arr,
+      { title: '>>' },
+    ]
+  }
+
   render() {
     // multiple classNames
     // editing; is-not-set etc.
     const s = this.state;
     const qmins = s.dayData ? s.dayData.schedule[s.hourPicked].qmins : [];
 
-console.log(s);
-
     return s.loading ?
       <Image src={loadingImg} responsive thumbnail onClick={() => this.abstractClick()} />
       :
       <div className="bookie-container">
+
+        <h1>Rendered stuff</h1>
         <ul className="pick-day">
-          {this.spawnObjLis(s.daysFrame)}
+          {this.spawnObjLis(this.wrapWithArrows(s.daysFrame))}
         </ul>
 
         <ul className="pick-minutes">
@@ -115,6 +123,11 @@ console.log(s);
           }))}
         </ul>
 
+        <ul className="pick-hour">
+          {this.spawnObjLis(this.wrapWithArrows(s.hoursFrame))}
+        </ul>
+
+        <h1>Static stuff</h1>
         <ul className="pick-day">
           {this.spawnLis(['<<', 'Today', 'Tomorrow', 'Weekend', '>>'], 1)}
         </ul>
