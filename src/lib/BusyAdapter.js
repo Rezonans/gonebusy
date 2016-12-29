@@ -7,7 +7,11 @@ const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 
 const config = {
   baseUri: 'http://sandbox.gonebusy.com/api/v1',
-  token: 'Token ac98ed08b5b0a9e7c43a233aeba841ce',
+  // original
+  // token: 'Token ac98ed08b5b0a9e7c43a233aeba841ce',
+
+  // сервис Алексея с заполненным календарем
+  token: 'Token af9094c6d46658e60cde12e34ad26979',
 };
 
 class BusyWrapper {
@@ -28,8 +32,21 @@ class BusyWrapper {
       const slots = ScheduleDummy.generateMorning(day).service.resources[0].available_slots.slots;
       const parsedSlots = ScheduleDummy.parseSlots(slots);
       // setTimeout(() => {resolve(parsedSlots)}, 2500);
-      setTimeout(() => {resolve(parsedSlots)}, 200);
+      setTimeout(() => { resolve(parsedSlots) }, 200);
       // resolve(slots);
+    });
+  }
+
+  getServiceAvailableSlotsByIdPromise(date) {
+    return new Promise(resolve => {
+      ServicesController.getServiceAvailableSlotsByIdAsync({
+        authorization: config.token,
+        id: 7891245607,
+        date
+      }).then(data => {
+        console.log(data.service.resources[0].availableSlots[0].slots);
+        resolve(ScheduleDummy.parseSlots(data.service.resources[0].availableSlots[0].slots.split(', ')));
+      });
     });
   }
 }

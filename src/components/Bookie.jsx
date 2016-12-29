@@ -48,7 +48,12 @@ class Bookie extends Component {
   fetchDayData() {
     const s = this.state;
     let dayPicked = s.dayPicked || ScheduleDummy.todayUtc();
-    BusyAdapter.getScheduleForDay(dayPicked).then(dayData => {
+
+
+    const f = BusyAdapter.getServiceAvailableSlotsByIdPromise;
+    // const f = BusyAdapter.getScheduleForDay;
+
+    f(dayPicked).then(dayData => {
       const stateDiff = this.getFrameDataStateDiff({
         dayPicked,
         dayData
@@ -56,6 +61,15 @@ class Bookie extends Component {
       stateDiff.loading = false;
       this.setState(stateDiff);
     });
+
+    // BusyAdapter.getScheduleForDay(dayPicked).then(dayData => {
+    //   const stateDiff = this.getFrameDataStateDiff({
+    //     dayPicked,
+    //     dayData
+    //   });
+    //   stateDiff.loading = false;
+    //   this.setState(stateDiff);
+    // });
   }
 
   abstractClick() {
@@ -97,10 +111,19 @@ class Bookie extends Component {
     ]
   }
 
+  tryServiceGetSchedule() {
+    BusyAdapter.getServiceAvailableSlotsByIdPromise().then(data => {
+      console.log(data, data.service.resources[0].availableSlots[0].slots);
+    });
+  }
+
   render() {
     // multiple classNames
     // editing; is-not-set etc.
     const s = this.state;
+
+    console.log(s);
+
     const qmins = s.dayData ? s.dayData.schedule[s.hourPicked].qmins : [];
 
     return s.loading ?
@@ -143,7 +166,12 @@ class Bookie extends Component {
           <span>&nbsp;&mdash;&nbsp;</span>
           <span className="end pick">choose end</span>
         </div>
-        <a onClick={ScheduleDummy.tryMoment}>link01</a>
+
+        <ul>
+          <li><a onClick={ScheduleDummy.tryMoment}>link01</a></li>
+          <li><a onClick={this.tryServiceGetSchedule}>tryServiceGetSchedule</a></li>
+        </ul>
+
       </div>;
   }
 }
