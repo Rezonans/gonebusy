@@ -1,7 +1,7 @@
 import gonebusy from 'gonebusy-nodejs-client/lib';
 import { Promise } from 'bluebird';
 
-import ScheduleDummy from './ScheduleDummy';
+import Scheduler from './Scheduler';
 
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 
@@ -23,17 +23,11 @@ class BusyWrapper {
     return ServicesController.getServicesAsync({ authorization: config.token });
   }
 
-  getDummyDay() {
-    return ScheduleDummy.generateMorning('2016-12-28');
-  }
-
-  getScheduleForDay(day) {
+  getMockScheduleForDay(day) {
     return new Promise(resolve => {
-      const slots = ScheduleDummy.generateMorning(day).service.resources[0].available_slots.slots;
-      const parsedSlots = ScheduleDummy.parseSlots(slots);
-      // setTimeout(() => {resolve(parsedSlots)}, 2500);
+      const slots = Scheduler.generateMorning(day).service.resources[0].available_slots.slots;
+      const parsedSlots = Scheduler.parseSlots(slots);
       setTimeout(() => { resolve(parsedSlots) }, 200);
-      // resolve(slots);
     });
   }
 
@@ -45,7 +39,7 @@ class BusyWrapper {
         date
       }).then(data => {
         console.log(data.service.resources[0].availableSlots[0].slots);
-        resolve(ScheduleDummy.parseSlots(data.service.resources[0].availableSlots[0].slots.split(', ')));
+        resolve(Scheduler.parseSlots(data.service.resources[0].availableSlots[0].slots.split(', ')));
       });
     });
   }

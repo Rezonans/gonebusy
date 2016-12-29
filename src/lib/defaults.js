@@ -4,5 +4,4 @@ const defaults = {
   hoursInList: 4,
 };
 
-
 export default defaults;

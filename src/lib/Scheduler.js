@@ -1,8 +1,9 @@
 import moment from 'moment';
 import defaults from './defaults';
 
-class ScheduleDummy {
+class Scheduler {
   constructor() {
+    //r.map(x => x.calendar(null, {lastDay: '[last]', sameDay: '[Today]'}))
     moment.updateLocale(moment.locale(), {
       calendar: {
         sameDay: '[Today]',
@@ -15,7 +16,8 @@ class ScheduleDummy {
     });
   }
 
-  //r.map(x => x.calendar(null, {lastDay: '[last]', sameDay: '[Today]'}))
+  qMinutesInt = [0, 15, 30, 45];
+  qMinutesStr = ['00', '15', '30', '45'];
 
   wrapDummy(slots) {
     return {
@@ -125,7 +127,7 @@ class ScheduleDummy {
         presentMinutes.push(m);
     });
 
-    presentHours = presentHours.sort((a,b) => a - b);
+    presentHours = presentHours.sort((a, b) => a - b);
 
     const schedule = { presentHours };
     for (let h = 0; h < 24; ++h) {
@@ -133,7 +135,7 @@ class ScheduleDummy {
       schedule[h] = {
         title: moment('' + h, ['HH']).format('ha'),
         present,
-        qmins: [0, 15, 30, 45].map(x => (present && !!~presentSlots[h].indexOf(x)))
+        qmins: this.qMinutesInt.map(x => (present && !!~presentSlots[h].indexOf(x)))
       }
     }
     return { presentSlots, schedule };
@@ -157,7 +159,7 @@ class ScheduleDummy {
   }
 }
 
-const instance = new ScheduleDummy();
+const instance = new Scheduler();
 Object.freeze(instance);
 
 export default instance;
