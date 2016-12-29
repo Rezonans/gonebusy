@@ -18,6 +18,8 @@ class Bookie extends Component {
 
       dayPicked: null,
       dayData: null,
+      hourPicked: null,
+      minutesIdxPicked: null,
 
       startVal: null,
       startPicking: true,
@@ -28,16 +30,24 @@ class Bookie extends Component {
     this.fetchDayData();
   }
 
+  pickHourMinsInDay(schedule) {
+    const hourPicked = schedule.presentHours.length ? schedule.presentHours[0] : null;
+    const minutesIdxPicked = (null == hourPicked) ? null : schedule[hourPicked].qmins.indexOf(true);
+    return { hourPicked, minutesIdxPicked };
+  }
+
   fetchDayData() {
     const s = this.state;
     let day = s.dayPicked || s.days[0].date;
-
     BusyAdapter.getScheduleForDay(day).then(parsedSlots => {
-      this.setState({
-        dayPicked: day,
-        loading: false,
-        dayData: parsedSlots,
-      });
+      this.setState(Object.assign(
+        {
+          dayPicked: day,
+          loading: false,
+          dayData: parsedSlots,
+        },
+        this.pickHourMinsInDay(parsedSlots.schedule)
+      ));
     });
   }
 
@@ -59,6 +69,15 @@ class Bookie extends Component {
     });
   }
 
+  spawnObjLis(txts, curIdx) {
+    return txts.map((x, idx) => {
+      return <li key={x} className={idx === curIdx ? 'current' : ''}>
+        {/* <a onClick={this.tupoclick.bind(this)}>{x}</a> */}
+        <a onClick={() => this.abstractClick()}>{x}</a>
+      </li>;
+    });
+  }
+
   render() {
     // multiple classNames
     // editing; is-not-set etc.
@@ -66,9 +85,16 @@ class Bookie extends Component {
       <Image src={loadingImg} responsive thumbnail onClick={() => this.abstractClick()} />
       :
       <div className="bookie-container">
+{
+        // <ul className="pick-day">
+        //   {this.spawnObjLis()}
+        // </ul>
+}
+
         <ul className="pick-day">
           {this.spawnLis(['<<', 'Today', 'Tomorrow', 'Weekend', '>>'], 1)}
         </ul>
+
         <ul className="pick-minutes">
           {this.spawnLis(['00', '15', '30', '45'], 2)}
         </ul>
@@ -80,6 +106,7 @@ class Bookie extends Component {
           <span>&nbsp;&mdash;&nbsp;</span>
           <span className="end pick">choose end</span>
         </div>
+        <a onClick={ScheduleDummy.tryMoment}>link01</a>
       </div>;
   }
 }

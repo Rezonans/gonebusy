@@ -93,19 +93,46 @@ class ScheduleDummy {
   }
 
   parseSlots(slots) {
-      // let hours = {};
-      // slots.each(val => {
-      //   let m = moment.utc(val)
-      //   const hour = m.hours();
-      //   if(!hours[hour])
-      //     hours[hour] = {q: []}
-      //   // let hour = 
-      // })
+    const presentSlots = {};
+    let presentHours = [];
+    slots.forEach(slot => {
+      const slotMoment = moment.utc(slot);
+      const h = slotMoment.hours();
+      if (!presentSlots[h]) {
+        presentSlots[h] = [];
+        presentHours.push(h);
+      }
+      const presentMinutes = presentSlots[h];
+      const m = slotMoment.minutes();
+      if (!~presentMinutes.indexOf(m))
+        presentMinutes.push(m);
+    });
 
-      console.log(slots);
+    presentHours = presentHours.sort();
 
+    const schedule = { presentHours };
+    for (let h = 0; h < 24; ++h) {
+      const present = !!presentSlots[h];
+      schedule[h] = {
+        title: moment('' + h, ['HH']).format('ha'),
+        present,
+        qmins: [0, 15, 30, 45].map(x => (present && !!~presentSlots[h].indexOf(x)))
+      }
+    }
+    return { presentSlots, schedule };
+  }
 
-    return slots;
+  tryMoment() {
+    // console.log('try');
+    // const str = "2014-11-03T19:15:00Z";
+    // const m = moment.utc(str);
+
+    // const str = "2014-11-03T19:15:00Z";
+    const m = moment;
+    console.log(m);
+    // m("0", ['HH']).format('ha')
+
+    console.log(m);
   }
 }
 

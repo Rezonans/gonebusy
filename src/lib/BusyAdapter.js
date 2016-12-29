@@ -27,7 +27,8 @@ class BusyWrapper {
     return new Promise(resolve => {
       const slots = ScheduleDummy.generateMorning(day).service.resources[0].available_slots.slots;
       const parsedSlots = ScheduleDummy.parseSlots(slots);
-      setTimeout(() => {resolve(parsedSlots)}, 2500);
+      // setTimeout(() => {resolve(parsedSlots)}, 2500);
+      setTimeout(() => {resolve(parsedSlots)}, 200);
       // resolve(slots);
     });
   }
