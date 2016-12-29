@@ -14,7 +14,7 @@ class Bookie extends Component {
       loading: true,
       // loading: false,
 
-      days: ScheduleDummy.getDatesAround(),
+      // days: ScheduleDummy.getDatesAround(),
 
       dayPicked: null,
       dayData: null,
@@ -30,31 +30,38 @@ class Bookie extends Component {
     this.fetchDayData();
   }
 
-  pickHourMinsInDay(schedule) {
+  getFrameDataStateDiff(stateDiff) {
+    const s = Object.assign({}, this.state, stateDiff);
+    const schedule = s.dayData.schedule;
     const hourPicked = schedule.presentHours.length ? schedule.presentHours[0] : null;
     const minutesIdxPicked = (null == hourPicked) ? null : schedule[hourPicked].qmins.indexOf(true);
-    return { hourPicked, minutesIdxPicked };
+
+    const daysFrame = ScheduleDummy.getDaysFrame(s.dayPicked);
+    daysFrame.forEach(d => { d.current = (d.val === s.dayPicked); });
+
+    const hoursFrame = ScheduleDummy.getHoursFrame(hourPicked, schedule);
+    // console.log(daysFrame);
+
+    return Object.assign({}, stateDiff, { hourPicked, minutesIdxPicked, daysFrame, hoursFrame });
   }
 
   fetchDayData() {
     const s = this.state;
-    let day = s.dayPicked || s.days[0].date;
-    BusyAdapter.getScheduleForDay(day).then(parsedSlots => {
-      this.setState(Object.assign(
-        {
-          dayPicked: day,
-          loading: false,
-          dayData: parsedSlots,
-        },
-        this.pickHourMinsInDay(parsedSlots.schedule)
-      ));
+    let dayPicked = s.dayPicked || ScheduleDummy.todayUtc();
+    BusyAdapter.getScheduleForDay(dayPicked).then(dayData => {
+      const stateDiff = this.getFrameDataStateDiff({
+        dayPicked,
+        dayData
+      });
+      stateDiff.loading = false;
+      this.setState(stateDiff);
     });
   }
 
   abstractClick() {
     // console.log(BusyAdapter.getDummyDay().service.resources[0].available_slots.slots);
 
-    console.log(ScheduleDummy.getDatesAround());
+    console.log(ScheduleDummy.getDaysFrame());
 
     if (this.state.loading) return;
     alert('clicked!');
@@ -69,11 +76,15 @@ class Bookie extends Component {
     });
   }
 
-  spawnObjLis(txts, curIdx) {
-    return txts.map((x, idx) => {
-      return <li key={x} className={idx === curIdx ? 'current' : ''}>
-        {/* <a onClick={this.tupoclick.bind(this)}>{x}</a> */}
-        <a onClick={() => this.abstractClick()}>{x}</a>
+  spawnObjLis(objs) {
+    return objs.map((x, idx) => {
+      let c = [];
+      if (x.current)
+        c.push('current');
+      if (x.disabled)
+        c.push('disabled');
+      return <li key={idx} className={c.join(' ')}>
+        <a onClick={() => this.abstractClick()}>{x.title}</a>
       </li>;
     });
   }
@@ -81,15 +92,28 @@ class Bookie extends Component {
   render() {
     // multiple classNames
     // editing; is-not-set etc.
-    return this.state.loading ?
+    const s = this.state;
+    const qmins = s.dayData ? s.dayData.schedule[s.hourPicked].qmins : [];
+
+console.log(s);
+
+    return s.loading ?
       <Image src={loadingImg} responsive thumbnail onClick={() => this.abstractClick()} />
       :
       <div className="bookie-container">
-{
-        // <ul className="pick-day">
-        //   {this.spawnObjLis()}
-        // </ul>
-}
+        <ul className="pick-day">
+          {this.spawnObjLis(s.daysFrame)}
+        </ul>
+
+        <ul className="pick-minutes">
+          {this.spawnObjLis(['00', '15', '30', '45'].map((x, idx) => {
+            return {
+              title: x,
+              disabled: !qmins[idx],
+              current: s.minutesIdxPicked === idx,
+            };
+          }))}
+        </ul>
 
         <ul className="pick-day">
           {this.spawnLis(['<<', 'Today', 'Tomorrow', 'Weekend', '>>'], 1)}

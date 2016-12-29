@@ -79,14 +79,31 @@ class ScheduleDummy {
     return this.generateDaySchedule(date, (h, q) => (h > 4 && h < 12));
   }
 
-  getDatesAround(date) {
+  getDaysFrame(date) {
     const mbase = moment.utc(date).startOf('day');
     let r = [];
     for (let d = 0; d < defaults.daysInList; ++d) {
       let m = moment(mbase).add(d, 'days');
       r.push({
-        date: m.format('YYYY-MM-DD'),
+        val: m.format('YYYY-MM-DD'),
         title: m.calendar()
+      });
+    }
+    return r;
+  }
+
+  // will fail for next-day threshold :(
+  getHoursFrame(hour, schedule) {
+    if (null === hour)
+      hour = 0;
+    let r = [];
+    for (let diff = 0; diff < defaults.hoursInList; ++diff) {
+      const val = hour + diff;
+      const s = schedule[val];
+      r.push({
+        title: s.title,
+        disabled: !s.present,
+        current: val === hour,
       });
     }
     return r;
@@ -108,7 +125,7 @@ class ScheduleDummy {
         presentMinutes.push(m);
     });
 
-    presentHours = presentHours.sort();
+    presentHours = presentHours.sort((a,b) => a - b);
 
     const schedule = { presentHours };
     for (let h = 0; h < 24; ++h) {
@@ -120,6 +137,10 @@ class ScheduleDummy {
       }
     }
     return { presentSlots, schedule };
+  }
+
+  todayUtc() {
+    return moment.utc().startOf('day').format('YYYY-MM-DD');
   }
 
   tryMoment() {
