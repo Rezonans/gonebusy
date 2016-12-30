@@ -23,7 +23,9 @@ class Bookie extends Component {
       endVal: null,
       endPicking: false,
     };
+  }
 
+  componentWillMount() {
     this.fetchDayData();
   }
 
