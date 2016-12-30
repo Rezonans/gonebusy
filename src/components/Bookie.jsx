@@ -45,6 +45,7 @@ class Bookie extends Component {
     let dayPicked = s.dayPicked || Scheduler.todayUtc();
 
     const f = BusyAdapter.getServiceAvailableSlotsByIdPromise;
+    // can use dummy data here
     // const f = BusyAdapter.getScheduleForDay;
 
     f(dayPicked).then(dayData => {
@@ -57,12 +58,6 @@ class Bookie extends Component {
     });
   }
 
-  abstractClick() {
-    console.log(Scheduler.getDaysFrame());
-    // if (this.state.loading) return;
-    // alert('clicked!');
-  }
-
   spawnObjLis(objs) {
     return objs.map((x, idx) => {
       let c = [];
@@ -71,7 +66,7 @@ class Bookie extends Component {
       if (x.disabled)
         c.push('disabled');
       return <li key={idx} className={c.join(' ')}>
-        <a onClick={() => this.abstractClick()}>{x.title}</a>
+        <a>{x.title}</a>
       </li>;
     });
   }

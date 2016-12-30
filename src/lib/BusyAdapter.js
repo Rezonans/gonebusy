@@ -6,13 +6,11 @@ import Scheduler from './Scheduler';
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 
 const config = {
-  baseUri: 'http://sandbox.gonebusy.com/api/v1',
-  // original
-  // token: 'Token ac98ed08b5b0a9e7c43a233aeba841ce',
-
-  // сервис Алексея с заполненным календарем
-  token: 'Token af9094c6d46658e60cde12e34ad26979',
+  baseUri: 'http://sandbox.gonebusy.com/api/v1'
 };
+
+// @to-do log warning if no env variables provided
+const { REACT_APP_SERVICE_ID: serviceId, REACT_APP_GONEBUSY_TOKEN: token } = process.env;
 
 class BusyWrapper {
   constructor() {
@@ -20,7 +18,7 @@ class BusyWrapper {
   }
 
   getServiceNamePromise() {
-    return ServicesController.getServicesAsync({ authorization: config.token });
+    return ServicesController.getServicesAsync({ authorization: token });
   }
 
   getMockScheduleForDay(day) {
@@ -32,13 +30,13 @@ class BusyWrapper {
   }
 
   getServiceAvailableSlotsByIdPromise(date) {
+    // no need to wrap with promise
     return new Promise(resolve => {
       ServicesController.getServiceAvailableSlotsByIdAsync({
-        authorization: config.token,
-        id: 7891245607,
+        authorization: token,
+        id: serviceId,
         date
       }).then(data => {
-        console.log(data.service.resources[0].availableSlots[0].slots);
         resolve(Scheduler.parseSlots(data.service.resources[0].availableSlots[0].slots.split(', ')));
       });
     });

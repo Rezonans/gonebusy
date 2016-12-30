@@ -3,7 +3,6 @@ import defaults from './defaults';
 
 class Scheduler {
   constructor() {
-    //r.map(x => x.calendar(null, {lastDay: '[last]', sameDay: '[Today]'}))
     moment.updateLocale(moment.locale(), {
       calendar: {
         sameDay: '[Today]',
@@ -55,8 +54,6 @@ class Scheduler {
   }
 
   generateDaySchedule(date, filter) {
-    // m.utc().startOf('day').add(3, 'hours').add(33, 'minutes').format();
-    // m.utc('2014-11-03').format()
     const mdate = moment.utc(date);
     let slots = [];
     for (let hour = 0; hour < 24; ++hour)
@@ -94,7 +91,7 @@ class Scheduler {
     return r;
   }
 
-  // will fail for next-day threshold :(
+  // @fix-me will fail for next-day threshold :(
   getHoursFrame(hour, schedule) {
     if (null === hour)
       hour = 0;
@@ -143,19 +140,6 @@ class Scheduler {
 
   todayUtc() {
     return moment.utc().startOf('day').format('YYYY-MM-DD');
-  }
-
-  tryMoment() {
-    // console.log('try');
-    // const str = "2014-11-03T19:15:00Z";
-    // const m = moment.utc(str);
-
-    // const str = "2014-11-03T19:15:00Z";
-    const m = moment;
-    console.log(m);
-    // m("0", ['HH']).format('ha')
-
-    console.log(m);
   }
 }
 
