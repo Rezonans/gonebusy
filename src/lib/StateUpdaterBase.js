@@ -1,20 +1,20 @@
 class StateUpdaterBase {
   constructor(state, diff) {
-    this._state = state;
-    this._diff = Object.assign({}, diff);
+    this.privateState = state;
+    this.privateDiff = Object.assign({}, diff);
   }
 
   add(diff) {
-    Object.assign(this._diff, diff);
+    Object.assign(this.privateDiff, diff);
     return this;
   }
 
   state() {
-    return Object.assign({}, this._state, this._diff);
+    return Object.assign({}, this.privateState, this.privateDiff);
   }
 
   diff() {
-    return Object.assign({}, this._diff);
+    return Object.assign({}, this.privateDiff);
   }
 }
 

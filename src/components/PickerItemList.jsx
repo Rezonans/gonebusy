@@ -1,8 +1,7 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
+import classNames from 'classnames';
 
 class PickerItemList extends Component {
-  // define props (2do)
-
   render() {
     const p = this.props;
 
@@ -14,21 +13,22 @@ class PickerItemList extends Component {
         { title: '>>', val: 'fwd' },
       ];
 
-    // npm i classnames 
     return <ul className={p.className}>
       {items.map((item, index) => {
-        let itemClass = [];
-        if (item.current)
-          itemClass.push('current');
-        if (item.disabled)
-          itemClass.push('disabled');
-        const onClick = (p.onLiClicked && !item.disabled) ? (() => { p.onLiClicked(item, index); }) : undefined;
-        return <li key={index} className={itemClass.join(' ')} onClick={onClick}>
+        const {current, disabled} = item;
+        const onClick = (p.onClick && !item.disabled) ? (() => { p.onClick(item, index); }) : undefined;
+        return <li key={index} className={classNames({ current, disabled })} onClick={onClick}>
           <a>{item.title}</a>
         </li>;
       })}
     </ul>;
   }
 }
+
+PickerItemList.propTypes = {
+  items: PropTypes.array,
+  onClick: PropTypes.func,
+  wrapWithArrows: PropTypes.bool
+};
 
 export default PickerItemList;

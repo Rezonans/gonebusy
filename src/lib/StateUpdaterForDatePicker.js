@@ -17,8 +17,12 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     const s = this.state();
 
     let hourPicked = s.hourPicked;
-    if (!s.hoursFrame.find((x) => x.day === s.dayPicked && x.hour === hourPicked && !x.disabled)) {
-      const entry = s.hoursFrame.find((x) => (!x.disabled && x.day === s.dayPicked)) || { hour: undefined };
+    if (!s.hoursFrame.find(
+      item => item.day === s.dayPicked && item.hour === hourPicked && !item.disabled
+    )) {
+      const entry = s.hoursFrame.find(
+        item => !item.disabled && item.day === s.dayPicked
+      ) || { hour: undefined };
       hourPicked = entry.hour;
     }
     this.add({ hourPicked });
@@ -38,9 +42,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
       minutesIdxPicked = undefined;
     this.add({
       minutesIdxPicked,
-      qMinutesFrame: qMinutesInt.map((x, idx) => ({
+      qMinutesFrame: qMinutesInt.map((item, idx) => ({
         title: qMinutesStr[idx],
-        disabled: !~qMinuteList.indexOf(x),
+        disabled: !~qMinuteList.indexOf(item),
         current: idx === minutesIdxPicked
       }))
     });

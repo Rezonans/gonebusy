@@ -9,7 +9,7 @@ rules:
   func-names: 2
   func-style:
     - 2
-    - expression
+    - declaration
     - allowArrowFunctions: true
   indent:
     - 2
@@ -19,6 +19,13 @@ rules:
     - 2
     - code: 100
       tabWidth: 4
+  no-plusplus:
+    - 2
+    - allowForLoopAfterthoughts: true
+  no-bitwise:
+    - 2
+    - allow: ["~"]
+
   new-cap: 0
   no-console: 0
   no-confusing-arrow: 0
