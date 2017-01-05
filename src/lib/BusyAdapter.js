@@ -12,32 +12,29 @@ const config = {
 // @to-do log warning if no env variables provided
 const { REACT_APP_SERVICE_ID: serviceId, REACT_APP_GONEBUSY_TOKEN: token } = process.env;
 
-class BusyWrapper {
-  constructor() {
-    gonebusy.configuration.BASEURI = config.baseUri;
-  }
+gonebusy.configuration.BASEURI = config.baseUri;
 
-  getServiceNamePromise() {
+class BusyWrapper {
+  static getServiceNamePromise() {
     return ServicesController.getServicesAsync({ authorization: token });
   }
 
-  getServiceAvailableSlotsByIdPromise(date) {
+  static getServiceAvailableSlotsByIdPromise(date) {
     return ServicesController.getServiceAvailableSlotsByIdAsync({
       authorization: token,
       id: serviceId,
       // date
       startDate: date,
       endDate: Scheduler.getNextDayString(date)
-    }).then(data => {
+    }).then((data) => {
       // console.log(data);
       const slotData = [];
-      data.service.resources[0].availableSlots.forEach(x => { slotData.push(...x.slots.split(', ')); });
+      data.service.resources[0].availableSlots.forEach((x) => {
+        slotData.push(...x.slots.split(', '));
+      });
       return slotData;
     });
   }
 }
 
-const instance = new BusyWrapper();
-Object.freeze(instance);
-
-export default instance;
+export default BusyWrapper;

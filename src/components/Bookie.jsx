@@ -74,7 +74,6 @@ class Bookie extends Component {
           // and now we set the current hour inside frame
           (updater.state().hoursFrame.find((item) => (item.day === dayPicked && item.hour === updater.state().hourPicked)) || {}).current = true;
 
-          // this.setMinutesIdxPicked(tracker);
           updater.setMinutesFrameAndIdx();
 
           this.setState(
@@ -143,19 +142,19 @@ class Bookie extends Component {
       <div className="bookie-container">
         <PickerItemList className="pick-day"
           items={s.daysFrame}
-          onLiClicked={(item, index) => { this.clickDay(item); } }
-          wrapWithArrows={true}
+          onClick={(item, index) => { this.clickDay(item); } }
+          wrapWithArrows
           />
 
         <PickerItemList className="pick-minutes"
           items={s.qMinutesFrame}
-          onLiClicked={(item, index) => { this.clickQuarter(index); } }
+          onClick={(item, index) => { this.clickQuarter(index); } }
           />
 
         <PickerItemList className="pick-hour"
           items={s.hoursFrame}
-          onLiClicked={(item, index) => { this.clickHour(item); } }
-          wrapWithArrows={true}
+          onClick={(item, index) => { this.clickHour(item); } }
+          wrapWithArrows
           />
 
         <div className="range">

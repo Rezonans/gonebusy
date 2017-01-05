@@ -1,67 +1,64 @@
 import moment from 'moment';
 import defaults from './defaults';
 
-
 function formatDayToString(m) {
   return m.format('YYYY-MM-DD');
 }
 
 function formatHourTitle(h) {
-  return moment('' + h, ['HH']).format('ha');
+  return moment(String(h), ['HH']).format('ha');
 }
 
-class Scheduler {
-  constructor() {
-    moment.updateLocale(moment.locale(), {
-      calendar: {
-        sameDay: '[Today]',
-        nextDay: '[Tomorrow]',
-        nextWeek: 'dddd',
-        lastDay: '[Yesterday]',
-        lastWeek: '[last] dddd',
-        sameElse: 'L'
-      }
-    });
+moment.updateLocale(moment.locale(), {
+  calendar: {
+    sameDay: '[Today]',
+    nextDay: '[Tomorrow]',
+    nextWeek: 'dddd',
+    lastDay: '[Yesterday]',
+    lastWeek: '[last] dddd',
+    sameElse: 'L'
   }
+});
 
-  getDaysFrame(frameStartDate) {
+class Scheduler {
+  static getDaysFrame(frameStartDate) {
     const mbase = moment.utc(frameStartDate);
-    let r = [];
-    for (let d = 0; d < defaults.daysInList; ++d) {
-      let m = moment(mbase).add(d, 'days');
-      r.push({
-        val: formatDayToString(m),
-        title: m.calendar()
+    const result = [];
+    for (let diff = 0; diff < defaults.daysInList; ++diff) {
+      const momentDay = moment(mbase).add(diff, 'days');
+      result.push({
+        val: formatDayToString(momentDay),
+        title: momentDay.calendar()
       });
     }
-    return r;
+    return result;
   }
 
-  getHoursFrame(dayPicked, hoursFrameStart, dayData) {
+  static getHoursFrame(dayPicked, hoursFrameStart, dayData) {
     const mOrg = moment.utc(dayPicked).add(hoursFrameStart, 'hours');
 
-    let r = [];
+    const result = [];
     for (let diff = 0; diff < defaults.hoursInList; ++diff) {
-      const m = mOrg.clone().add(diff, 'hours');
-      const day = formatDayToString(m);
-      const hour = m.hours();
+      const hourItemMoment = mOrg.clone().add(diff, 'hours');
+      const day = formatDayToString(hourItemMoment);
+      const hour = hourItemMoment.hours();
       const presentSlots = (dayData[day] || {}).presentSlots || {};
 
-      r.push({
+      result.push({
         title: formatHourTitle(hour),
         disabled: !presentSlots[hour],
         day,
         hour
       });
     }
-    return r;
+    return result;
   }
 
-  getDayDataFromSlots(slots) {
+  static getDayDataFromSlots(slots) {
     const result = {};
-    let parsedDates = [];
+    const parsedDates = [];
 
-    slots.forEach(slot => {
+    slots.forEach((slot) => {
       const slotMoment = moment.utc(slot);
       const slotDate = formatDayToString(slotMoment);
       if (!result[slotDate]) {
@@ -72,37 +69,34 @@ class Scheduler {
         parsedDates.push(slotDate);
         result[slotDate] = newSlot;
       }
-      const {presentSlots, presentHours} = result[slotDate];
+      const { presentSlots, presentHours } = result[slotDate];
       const h = slotMoment.hours();
       if (!presentSlots[h]) {
         presentSlots[h] = [];
         presentHours.push(h);
       }
       const presentMinutes = presentSlots[h];
-      const m = slotMoment.minutes();
-      if (!~presentMinutes.indexOf(m))
-        presentMinutes.push(m);
+      const minutes = slotMoment.minutes();
+      if (!~presentMinutes.indexOf(minutes))
+        presentMinutes.push(minutes);
     });
 
     result.parsedDates = parsedDates.sort();
     return result;
   }
 
-  getUtcTodayString() {
+  static getUtcTodayString() {
     return formatDayToString(moment.utc());
   }
 
-  getNextDayString(date) {
+  static getNextDayString(date) {
     return formatDayToString(moment.utc(date).add(1, 'day'));
   }
 
-  getStructuredIncrement(date, hour, unit, increment) {
+  static getStructuredIncrement(date, hour, unit, increment) {
     const m = moment.utc(date).add(hour, 'hours').add(increment, unit);
     return { day: formatDayToString(m), hour: m.hours() };
   }
 }
 
-const instance = new Scheduler();
-Object.freeze(instance);
-
-export default instance;
+export default Scheduler;
