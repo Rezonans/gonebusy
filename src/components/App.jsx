@@ -1,20 +1,20 @@
 import React, { Component } from 'react';
 import { Breadcrumb, Image } from 'react-bootstrap';
-import gonebusy from 'gonebusy-nodejs-client/lib';
-import { Promise } from 'bluebird';
+
+import BusyAdapter from '../lib/BusyAdapter';
+import defaults from '../lib/defaults';
 
 import dogWalker from './DogWalker.svg';
 import './App.css';
 
-const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
+import Bookie from './Bookie.jsx';
 
 class App extends Component {
   constructor() {
     super();
-    gonebusy.configuration.BASEURI = 'http://sandbox.gonebusy.com/api/v1';
-    const token = 'Token ac98ed08b5b0a9e7c43a233aeba841ce';
-    ServicesController.getServicesAsync({ authorization: token }).then((response) => {
-      console.log('services', response);
+    this.state = { serviceName: defaults.defaultServiceName };
+    BusyAdapter.getServiceNamePromise().then((response) => {
+      this.setState({ serviceName: response.services[0].name });
     });
   }
 
@@ -32,7 +32,7 @@ class App extends Component {
 
           <div className="row service-detail">
             <div className="col-md-8">
-              <h2 className="service-title">Shauna&#x27;s Best in Show Dog Walking Service</h2>
+              <h2 className="service-title">{this.state.serviceName}</h2>
 
               <Image src={dogWalker} responsive thumbnail />
             </div>
@@ -40,6 +40,9 @@ class App extends Component {
               <h3 className="service-price">$10 / hour</h3>
 
               <Image src={dogWalker} responsive thumbnail />
+
+              <Bookie />
+
             </div>
           </div>
         </div>
