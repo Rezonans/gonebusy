@@ -21,14 +21,6 @@ class BusyWrapper {
     return ServicesController.getServicesAsync({ authorization: token });
   }
 
-  // getMockScheduleForDay(day) {
-  //   return new Promise(resolve => {
-  //     const slots = Scheduler.generateMorning(day).service.resources[0].available_slots.slots;
-  //     const parsedSlots = Scheduler.parseSlots(slots);
-  //     setTimeout(() => { resolve(parsedSlots) }, 200);
-  //   });
-  // }
-
   getServiceAvailableSlotsByIdPromise(date) {
     return ServicesController.getServiceAvailableSlotsByIdAsync({
       authorization: token,
