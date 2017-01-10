@@ -34,7 +34,7 @@ class Scheduler {
     return result;
   }
 
-  static getHoursFrame(dayPicked, hoursFrameStart, dayData) {
+  static getHoursFrame(dayPicked, hoursFrameStart) {
     const mOrg = moment.utc(dayPicked).add(hoursFrameStart, 'hours');
 
     const result = [];
@@ -42,11 +42,8 @@ class Scheduler {
       const hourItemMoment = mOrg.clone().add(diff, 'hours');
       const day = formatDayToString(hourItemMoment);
       const hour = hourItemMoment.hours();
-      const presentSlots = (dayData[day] || {}).presentSlots || {};
-
       result.push({
         title: formatHourTitle(hour),
-        disabled: !presentSlots[hour],
         day,
         hour
       });
@@ -56,7 +53,6 @@ class Scheduler {
 
   static getDayDataFromSlots(slots) {
     const result = {};
-    const parsedDates = [];
 
     slots.forEach((slot) => {
       const slotMoment = moment.utc(slot);
@@ -66,7 +62,6 @@ class Scheduler {
           presentSlots: {},
           presentHours: []
         };
-        parsedDates.push(slotDate);
         result[slotDate] = newSlot;
       }
       const { presentSlots, presentHours } = result[slotDate];
@@ -81,7 +76,6 @@ class Scheduler {
         presentMinutes.push(minutes);
     });
 
-    result.parsedDates = parsedDates.sort();
     return result;
   }
 
@@ -96,6 +90,23 @@ class Scheduler {
   static getStructuredIncrement(date, hour, unit, increment) {
     const m = moment.utc(date).add(hour, 'hours').add(increment, unit);
     return { day: formatDayToString(m), hour: m.hours() };
+  }
+
+  static getRangeEndFormatted(day, hour, qMinutesIdx, startNotEnd) {
+    if (undefined === day || undefined === hour || undefined === qMinutesIdx)
+      return undefined;
+    const minutes = 15 * (qMinutesIdx + (startNotEnd ? 0 : 1));
+    const mVal = moment.utc(day).add(hour, 'hours').add(minutes, 'minutes');
+
+    const mToday = moment.utc();
+    let result = '';
+    if (formatDayToString(mToday) === formatDayToString(mVal))
+      result = mVal.format('ha:mm');
+    else if (mToday.year() === mVal.year())
+      result = mVal.format('MM-DD ha:mm');
+    else
+      result = mVal.format('YY-MM-DD ha:mm');
+    return result;
   }
 }
 

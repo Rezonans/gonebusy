@@ -25,6 +25,9 @@ rules:
   no-bitwise:
     - 2
     - allow: ["~"]
+  no-param-reassign:
+    - 2
+    - props: false
 
   new-cap: 0
   no-console: 0

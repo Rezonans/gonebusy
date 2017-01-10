@@ -1,14 +1,14 @@
-import React, { Component } from 'react';
-import { Image } from 'react-bootstrap';
+import React, { Component, PropTypes } from 'react';
 
 import BusyAdapter from '../lib/BusyAdapter';
 import Scheduler from '../lib/Scheduler';
 import StateUpdaterForDatePicker from '../lib/StateUpdaterForDatePicker';
+import StateUpdaterForDateRange from '../lib/StateUpdaterForDateRange';
 
 import './Bookie.css';
-import loadingImg from './loading.gif';
 
 import PickerItemList from './PickerItemList.jsx';
+import PickerDateRange from './PickerDateRange.jsx';
 
 class Bookie extends Component {
   constructor() {
@@ -17,8 +17,8 @@ class Bookie extends Component {
       loading: false,
       initialized: false,
 
-      dayData: undefined,
-      // daysToFetch: [],
+      dayData: {},
+      daysToFetch: [],
 
       daysFrameStart: undefined,
       hoursFrameStart: undefined,
@@ -32,60 +32,59 @@ class Bookie extends Component {
 
       startVal: undefined,
       startPicking: undefined,
+      startIsFocused: false,
       endVal: undefined,
       endPicking: undefined,
+      endIsFocused: false,
     };
   }
 
-  negotiateStateDiff(diff) {
-    const updater = new StateUpdaterForDatePicker(this.state, diff);
+  setParentLoading(loading) {
+    if (this.props.onSetLoading)
+      this.props.onSetLoading(loading);
+  }
 
+  negotiateStateDiff(diff, setLoading = false) {
+    if (!this.state.loading || setLoading) {
+      const pickerUpdater = new StateUpdaterForDatePicker(this.state, diff);
+      pickerUpdater.adjust();
+
+      const rangeUpdater = new StateUpdaterForDateRange(this.state, pickerUpdater.diff());
+      rangeUpdater.adjust();
+
+      if (setLoading)
+        this.setParentLoading(rangeUpdater.state().loading);
+      this.setState(rangeUpdater.diff(), () => { this.pullMissingData(); });
+    }
+  }
+
+  pullMissingData() {
     if (!this.state.loading) {
-      this.setState({ loading: true });
+      const { daysToFetch } = this.state;
 
-      // ensure day frame start
-      const daysFrameStart = updater.state().daysFrameStart || Scheduler.getUtcTodayString();
+      console.log('days2fetch: ', daysToFetch);
 
-      // fill day frame
-      const daysFrame = Scheduler.getDaysFrame(daysFrameStart);
+      if (daysToFetch.length) {
+        const dayToFetch = daysToFetch[0];
 
-      // ensure picked date
-      let dayPicked = updater.state().dayPicked || daysFrameStart;
-      if (!daysFrame.find(item => (dayPicked === item.val))) {
-        dayPicked = daysFrame[0].val;
-        updater.add({ hourPicked: undefined, minutesIdxPicked: undefined });
-      }
+        this.setParentLoading(true);
+        this.setState({ loading: true }, () => {
+          BusyAdapter.getServiceAvailableSlotsByIdPromise(dayToFetch)
+            .then((slotData) => {
+              let { daysToFetch, dayData } = this.state;
+              const parsedData = Scheduler.getDayDataFromSlots(slotData);
 
-      updater.add({ daysFrameStart, daysFrame, dayPicked });
-      // fetch data
-      BusyAdapter.getServiceAvailableSlotsByIdPromise(dayPicked)
-        .then((slotData) => {
-          const dayData = Scheduler.getDayDataFromSlots(slotData);
+              Object.assign(dayData, parsedData);
+              daysToFetch = daysToFetch.filter(val => !dayData[val]);
 
-          updater.add({ dayData });
-
-          // process day frame
-          daysFrame.forEach(item => { item.current = (item.val === dayPicked); });
-
-          updater.setHoursFrameStart();
-          updater.add({ hoursFrame: Scheduler.getHoursFrame(dayPicked, updater.state().hoursFrameStart, dayData) });
-          updater.setPickedHour();
-
-          // and now we set the current hour inside frame
-          (updater.state().hoursFrame.find((item) => (item.day === dayPicked && item.hour === updater.state().hourPicked)) || {}).current = true;
-
-          updater.setMinutesFrameAndIdx();
-
-          this.setState(
-            updater
-              .add({ loading: false })
-              .diff()
-          );
-        })
-        .catch((ex) => {
-          console.log('exception caught!', ex);
-          this.setState({ loading: false });
+              this.negotiateStateDiff({ dayData, daysToFetch, loading: false }, true);
+            })
+            .catch((ex) => {
+              console.log('exception caught!', ex);
+              this.negotiateStateDiff({ loading: false }, true);
+            });
         });
+      }
     }
   }
 
@@ -131,39 +130,68 @@ class Bookie extends Component {
     }
   }
 
+  onPickerDateRangeEvent(isStartNotEnd, eventName, value) {
+    let diff = {};
+    if ('click' === eventName) {
+      diff = isStartNotEnd ?
+        { startIsFocused: true, startPicking: true, endPicking: false }
+        :
+        { endIsFocused: true, endPicking: true, startPicking: false };
+    } else if ('blur' === eventName) {
+      diff = isStartNotEnd ?
+        {
+          startIsFocused: false,
+          startVal: value
+        }
+        :
+        {
+          endIsFocused: false,
+          endVal: value
+        };
+    }
+
+    this.negotiateStateDiff(diff);
+
+    console.log(isStartNotEnd, eventName);
+  }
+
   render() {
     const s = this.state;
-    const isWaiting = (s.loading || !s.initialized);
+    // const isWaiting = (s.loading || !s.initialized);
     console.log(s);
 
-    return isWaiting ?
-      <Image src={loadingImg} responsive thumbnail />
-      :
-      <div className="bookie-container">
-        <PickerItemList className="pick-day"
-          items={s.daysFrame}
-          onClick={(item, index) => { this.clickDay(item); } }
-          wrapWithArrows
-          />
+    const {
+      startPicking, endPicking, startVal, endVal, startIsFocused, endIsFocused
+    } = this.state;
 
-        <PickerItemList className="pick-minutes"
-          items={s.qMinutesFrame}
-          onClick={(item, index) => { this.clickQuarter(index); } }
-          />
+    return <div className="bookie-container">
+      <PickerItemList className="pick-day"
+        items={s.daysFrame}
+        onClick={(item, index) => { this.clickDay(item); } }
+        wrapWithArrows
+        />
 
-        <PickerItemList className="pick-hour"
-          items={s.hoursFrame}
-          onClick={(item, index) => { this.clickHour(item); } }
-          wrapWithArrows
-          />
+      <PickerItemList className="pick-minutes"
+        items={s.qMinutesFrame}
+        onClick={(item, index) => { this.clickQuarter(index); } }
+        />
 
-        <div className="range">
-          <span className="start pick">11:00am</span>
-          <span>&nbsp;&mdash;&nbsp;</span>
-          <span className="end pick">choose end</span>
-        </div>
-      </div>;
+      <PickerItemList className="pick-hour"
+        items={s.hoursFrame}
+        onClick={(item, index) => { this.clickHour(item); } }
+        wrapWithArrows
+        />
+
+      <PickerDateRange
+        data={{ startPicking, endPicking, startVal, endVal, startIsFocused, endIsFocused }}
+        onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
+        />
+    </div>;
   }
 }
+
+Bookie.propTypes = {
+  onSetLoading: PropTypes.func
+};
 
 export default Bookie;
