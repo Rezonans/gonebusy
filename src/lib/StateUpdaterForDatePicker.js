@@ -108,6 +108,10 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
       item => (item.day === dayPicked && item.hour === this.state().hourPicked)
     ) || {}).current = true;
 
+    const forbidDayBack = Scheduler.isPastOrToday(daysFrame[0].val);
+    const forbidHourBack = Scheduler.isPastOrToday(hoursFrame[0].day);
+    this.add({ forbidDayBack, forbidHourBack });
+
     this.setMinutesFrameAndIdx();
   }
 

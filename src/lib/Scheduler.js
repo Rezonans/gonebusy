@@ -108,6 +108,10 @@ class Scheduler {
       result = mVal.format('YY-MM-DD ha:mm');
     return result;
   }
+
+  static isPastOrToday(date) {
+    return moment.utc().isSameOrAfter(moment.utc(date), 'day');
+  }
 }
 
 export default Scheduler;

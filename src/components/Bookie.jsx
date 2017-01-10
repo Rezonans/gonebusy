@@ -30,6 +30,9 @@ class Bookie extends Component {
       hourPicked: undefined,
       minutesIdxPicked: undefined,
 
+      forbidDayBack: false,
+      forbidHourBack: false,
+
       startVal: undefined,
       startPicking: undefined,
       startIsFocused: false,
@@ -157,7 +160,7 @@ class Bookie extends Component {
 
   render() {
     const s = this.state;
-    // const isWaiting = (s.loading || !s.initialized);
+
     console.log(s);
 
     const {
@@ -169,6 +172,7 @@ class Bookie extends Component {
         items={s.daysFrame}
         onClick={(item, index) => { this.clickDay(item); } }
         wrapWithArrows
+        forbidBack={s.forbidDayBack}
         />
 
       <PickerItemList className="pick-minutes"
@@ -180,6 +184,7 @@ class Bookie extends Component {
         items={s.hoursFrame}
         onClick={(item, index) => { this.clickHour(item); } }
         wrapWithArrows
+        forbidBack={s.forbidHourBack}
         />
 
       <PickerDateRange

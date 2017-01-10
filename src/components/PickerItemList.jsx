@@ -8,7 +8,7 @@ class PickerItemList extends Component {
     let items = (p.items || []);
     if (p.wrapWithArrows)
       items = [
-        { title: '<<', val: 'rev' },
+        { title: '<<', val: 'rev', disabled: p.forbidBack },
         ...items,
         { title: '>>', val: 'fwd' },
       ];
@@ -28,7 +28,8 @@ class PickerItemList extends Component {
 PickerItemList.propTypes = {
   items: PropTypes.array,
   onClick: PropTypes.func,
-  wrapWithArrows: PropTypes.bool
+  wrapWithArrows: PropTypes.bool,
+  forbidBack: PropTypes.bool
 };
 
 export default PickerItemList;
