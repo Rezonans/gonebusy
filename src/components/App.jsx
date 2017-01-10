@@ -9,19 +9,33 @@ import './App.css';
 
 import Bookie from './Bookie.jsx';
 
+import ProgressBar from 'react-progress-bar-plus';
+import 'react-progress-bar-plus/lib/progress-bar.css';
+
 class App extends Component {
   constructor() {
     super();
-    this.state = { serviceName: defaults.defaultServiceName };
+    this.state = {
+      loading: false,
+      serviceName: defaults.defaultServiceName
+    };
     BusyAdapter.getServiceNamePromise().then((response) => {
       this.setState({ serviceName: response.services[0].name });
     });
   }
 
+  setLoading(loading) {
+    this.setState({ loading });
+  }
+
   render() {
+    const s = this.state;
+
     return (
       <div className="container">
         <div className="site-detail">
+          <ProgressBar percent={s.loading ? 3 : 100} autoIncrement intervalTime={150} />
+
           <h1>GigVillage.com</h1>
 
           <Breadcrumb>
@@ -32,7 +46,7 @@ class App extends Component {
 
           <div className="row service-detail">
             <div className="col-md-8">
-              <h2 className="service-title">{this.state.serviceName}</h2>
+              <h2 className="service-title">{s.serviceName}</h2>
 
               <Image src={dogWalker} responsive thumbnail />
             </div>
@@ -41,8 +55,7 @@ class App extends Component {
 
               <Image src={dogWalker} responsive thumbnail />
 
-              <Bookie />
-
+              <Bookie onSetLoading={loading => { this.setLoading(loading); } } />
             </div>
           </div>
         </div>
