@@ -68,7 +68,57 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     });
   }
 
+  updateRange() {
+    const defaultRamgeEndValue = (startNotEnd) => {
+      return `choose ${startNotEnd ? 'start' : 'end'}`;
+    };
+
+    const s = this.virtualState();
+    let { startPicking, startVal, endVal } = s;
+    const { endPicking, dayPicked, hourPicked, minutesIdxPicked } = s;
+
+
+    if (!(startPicking || endPicking))
+      startPicking = true;
+
+    if (startPicking)
+      startVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked, true);
+    startVal = startVal || defaultRamgeEndValue(true);
+
+    if (endPicking)
+      endVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked, false);
+    endVal = endVal || defaultRamgeEndValue(false);
+
+    this.add({ startPicking, startVal, endVal });
+  }
+
+  cleanupDiff() {
+    delete this.privateDiff.rangeEndValueEntered;
+
+    // afterall, to make virtualState consistent
+    this.add({});
+  }
+
+
+  readRangeEndValueEntered() {
+    const s = this.virtualState();
+    const { rangeEndValueEntered } = s;
+    const isStartNotEnd = !!s.startPicking;
+
+    if (undefined != rangeEndValueEntered) {
+      const parsedValue = Scheduler.parseEnteredDate(rangeEndValueEntered, isStartNotEnd);
+      if (parsedValue) {
+        console.log(parsedValue);
+        this.add(parsedValue);
+        // should happen if it's not inside frame
+        this.add({ daysFrameStart: parsedValue.dayPicked, hoursFrameStart: parsedValue.hourPicked });
+      }
+    }
+  }
+
   adjust() {
+    this.readRangeEndValueEntered();
+
     let { daysFrameStart, dayPicked } = this.virtualState();
 
     // ensure day frame start
@@ -113,8 +163,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     this.add({ forbidDayBack, forbidHourBack });
 
     this.setMinutesFrameAndIdx();
+    this.updateRange();
+    this.cleanupDiff();
   }
-
 }
 
 export default StateUpdaterForDatePicker;

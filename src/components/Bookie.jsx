@@ -3,7 +3,7 @@ import React, { Component, PropTypes } from 'react';
 import BusyAdapter from '../lib/BusyAdapter';
 import Scheduler from '../lib/Scheduler';
 import StateUpdaterForDatePicker from '../lib/StateUpdaterForDatePicker';
-import StateUpdaterForDateRange from '../lib/StateUpdaterForDateRange';
+// import StateUpdaterForDateRange from '../lib/StateUpdaterForDateRange';
 
 import './Bookie.css';
 
@@ -51,13 +51,9 @@ class Bookie extends Component {
     if (!this.state.loading || setLoading) {
       const pickerUpdater = new StateUpdaterForDatePicker(this.state, diff);
       pickerUpdater.adjust();
-
-      const rangeUpdater = new StateUpdaterForDateRange(this.state, pickerUpdater.diff());
-      rangeUpdater.adjust();
-
       if (setLoading)
-        this.setParentLoading(rangeUpdater.state().loading);
-      this.setState(rangeUpdater.diff(), () => { this.pullMissingData(); });
+        this.setParentLoading(pickerUpdater.state().loading);
+      this.setState(pickerUpdater.diff(), () => { this.pullMissingData(); });
     }
   }
 
@@ -141,16 +137,8 @@ class Bookie extends Component {
         :
         { endIsFocused: true, endPicking: true, startPicking: false };
     } else if ('blur' === eventName) {
-      diff = isStartNotEnd ?
-        {
-          startIsFocused: false,
-          startVal: value
-        }
-        :
-        {
-          endIsFocused: false,
-          endVal: value
-        };
+      diff = isStartNotEnd ? { startIsFocused: false } : { endIsFocused: false };
+      diff.rangeEndValueEntered = value;
     }
 
     this.negotiateStateDiff(diff);

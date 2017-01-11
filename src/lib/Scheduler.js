@@ -112,6 +112,21 @@ class Scheduler {
   static isPastOrToday(date) {
     return moment.utc().isSameOrAfter(moment.utc(date), 'day');
   }
+
+  // "2017-01-11T09:26:00Z"
+  // 2017-01-11T09:26:46Z"
+  static parseEnteredDate(strValue, isStartNotEnd) {
+    const mVal = moment.utc(strValue, ['ha:mm', 'MM-DD ha:mm', 'YYYY-MM-DD ha:mm', 'YYYY-MM-DD']);
+    if (mVal.isValid()) {
+      if (!isStartNotEnd)
+        mVal.subtract(15, 'minutes');
+      const dayPicked = formatDayToString(mVal);
+      const hourPicked = mVal.hour();
+      const minutesIdxPicked = mVal.minutes() / 15;
+      return { dayPicked, hourPicked, minutesIdxPicked };
+    } else
+      return false;
+  }
 }
 
 export default Scheduler;
