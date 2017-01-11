@@ -92,11 +92,11 @@ class Scheduler {
     return { day: formatDayToString(m), hour: m.hours() };
   }
 
-  static getRangeEndFormatted(day, hour, qMinutesIdx, startNotEnd) {
+  static getRangeEndFormatted(day, hour, qMinutesIdx) {
     if (undefined === day || undefined === hour || undefined === qMinutesIdx)
       return undefined;
-    const minutes = 15 * (qMinutesIdx + (startNotEnd ? 0 : 1));
-    const mVal = moment.utc(day).add(hour, 'hours').add(minutes, 'minutes');
+    
+    const mVal = moment.utc(day).add(hour, 'hours').add(15 * qMinutesIdx, 'minutes');
 
     const mToday = moment.utc();
     let result = '';
@@ -115,11 +115,9 @@ class Scheduler {
 
   // "2017-01-11T09:26:00Z"
   // 2017-01-11T09:26:46Z"
-  static parseEnteredDate(strValue, isStartNotEnd) {
+  static parseEnteredDate(strValue) {
     const mVal = moment.utc(strValue, ['ha:mm', 'MM-DD ha:mm', 'YYYY-MM-DD ha:mm', 'YYYY-MM-DD']);
     if (mVal.isValid()) {
-      if (!isStartNotEnd)
-        mVal.subtract(15, 'minutes');
       const dayPicked = formatDayToString(mVal);
       const hourPicked = mVal.hour();
       const minutesIdxPicked = mVal.minutes() / 15;

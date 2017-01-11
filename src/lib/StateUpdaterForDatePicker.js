@@ -82,11 +82,11 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
       startPicking = true;
 
     if (startPicking)
-      startVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked, true);
+      startVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked);
     startVal = startVal || defaultRamgeEndValue(true);
 
     if (endPicking)
-      endVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked, false);
+      endVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked);
     endVal = endVal || defaultRamgeEndValue(false);
 
     this.add({ startPicking, startVal, endVal });
@@ -103,10 +103,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
   readRangeEndValueEntered() {
     const s = this.virtualState();
     const { rangeEndValueEntered } = s;
-    const isStartNotEnd = !!s.startPicking;
 
     if (undefined != rangeEndValueEntered) {
-      const parsedValue = Scheduler.parseEnteredDate(rangeEndValueEntered, isStartNotEnd);
+      const parsedValue = Scheduler.parseEnteredDate(rangeEndValueEntered);
       if (parsedValue) {
         console.log(parsedValue);
         this.add(parsedValue);
