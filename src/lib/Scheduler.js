@@ -83,6 +83,10 @@ class Scheduler {
     return formatDayToString(moment.utc());
   }
 
+  static getCurrentHour() {
+    return moment().hour();
+  }
+
   static getNextDayString(date) {
     return formatDayToString(moment.utc(date).add(1, 'day'));
   }
@@ -92,22 +96,62 @@ class Scheduler {
     return { day: formatDayToString(m), hour: m.hours() };
   }
 
-  static getRangeEndFormatted(day, hour, qMinutesIdx, startNotEnd) {
+  static getRangeEndValue(day, hour, qMinutesIdx) {
     if (undefined === day || undefined === hour || undefined === qMinutesIdx)
       return undefined;
-    const minutes = 15 * (qMinutesIdx + (startNotEnd ? 0 : 1));
-    const mVal = moment.utc(day).add(hour, 'hours').add(minutes, 'minutes');
 
-    const mToday = moment.utc();
+    return moment.utc(day).add(hour, 'hours').add(15 * qMinutesIdx, 'minutes').format();
+  }
+
+  static getRangeEndFormatted(utcDateStr) {
     let result = '';
-    if (formatDayToString(mToday) === formatDayToString(mVal))
-      result = mVal.format('ha:mm');
-    else if (mToday.year() === mVal.year())
-      result = mVal.format('MM-DD ha:mm');
-    else
-      result = mVal.format('YY-MM-DD ha:mm');
+    if (utcDateStr) {
+      const mVal = moment.utc(utcDateStr);
+      const mToday = moment.utc();
+      if (formatDayToString(mToday) === formatDayToString(mVal))
+        result = mVal.format('ha:mm');
+      else if (mToday.year() === mVal.year())
+        result = mVal.format('MM-DD ha:mm');
+      else
+        result = mVal.format('YY-MM-DD ha:mm');
+    }
     return result;
   }
+
+  static isPast(date, hours) {
+    return moment().isAfter(moment(date).add(hours, 'hours'), 'hours');
+  }
+
+  static previousIsPast(date, hours, dayNotHour) {
+    const unit = dayNotHour ? 'day' : 'hour';
+    const momentToCompare = moment(date).add(hours, 'hours').subtract(1, unit);
+    return moment().isAfter(momentToCompare, unit);
+  }
+
+  static parseEnteredDate(strValue) {
+    // also, format is valid: 2017-01-11T09:26:46Z
+    const mVal = moment.utc(
+      strValue,
+      ['ha:mm', 'MM-DD ha:mm', 'YYYY-MM-DD ha:mm', 'YYYY-MM-DD', 'YYYY-MM-DD HH:mm Z']
+    );
+    let result = false;
+    if (mVal.isValid()) {
+      const dayPicked = formatDayToString(mVal);
+      const hourPicked = mVal.hour();
+      const minutesIdxPicked = Math.trunc(mVal.minutes() / 15);
+      result = { dayPicked, hourPicked, minutesIdxPicked };
+    }
+    return result;
+  }
+
+  static parseEnteredDateOrUndefined(value) {
+    return Scheduler.parseEnteredDate(value) || {
+      dayPicked: undefined,
+      hourPicked: undefined,
+      minutesIdxPicked: undefined
+    };
+  }
+
 }
 
 export default Scheduler;

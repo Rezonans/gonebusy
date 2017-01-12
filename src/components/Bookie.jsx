@@ -3,7 +3,6 @@ import React, { Component, PropTypes } from 'react';
 import BusyAdapter from '../lib/BusyAdapter';
 import Scheduler from '../lib/Scheduler';
 import StateUpdaterForDatePicker from '../lib/StateUpdaterForDatePicker';
-import StateUpdaterForDateRange from '../lib/StateUpdaterForDateRange';
 
 import './Bookie.css';
 
@@ -30,12 +29,31 @@ class Bookie extends Component {
       hourPicked: undefined,
       minutesIdxPicked: undefined,
 
+      forbidDayBack: false,
+      forbidHourBack: false,
+
       startVal: undefined,
+      startValStr: undefined,
       startPicking: undefined,
       startIsFocused: false,
+
       endVal: undefined,
+      endValStr: undefined,
       endPicking: undefined,
       endIsFocused: false,
+
+      // range: {
+      //   start: {
+      //     val: undefined,
+      //     title: undefined,
+      //   },
+      //   end: {
+      //     val: undefined,
+      //     title: undefined,
+      //   },
+      //   current: 'start',
+      // isFocused: false
+      // }
     };
   }
 
@@ -48,21 +66,16 @@ class Bookie extends Component {
     if (!this.state.loading || setLoading) {
       const pickerUpdater = new StateUpdaterForDatePicker(this.state, diff);
       pickerUpdater.adjust();
-
-      const rangeUpdater = new StateUpdaterForDateRange(this.state, pickerUpdater.diff());
-      rangeUpdater.adjust();
-
       if (setLoading)
-        this.setParentLoading(rangeUpdater.state().loading);
-      this.setState(rangeUpdater.diff(), () => { this.pullMissingData(); });
+        this.setParentLoading(pickerUpdater.state().loading);
+      console.log('applying diff', diff, pickerUpdater.diff());
+      this.setState(pickerUpdater.diff(), () => { this.pullMissingData(); });
     }
   }
 
   pullMissingData() {
     if (!this.state.loading) {
       const { daysToFetch } = this.state;
-
-      console.log('days2fetch: ', daysToFetch);
 
       if (daysToFetch.length) {
         const dayToFetch = daysToFetch[0];
@@ -137,53 +150,54 @@ class Bookie extends Component {
         { startIsFocused: true, startPicking: true, endPicking: false }
         :
         { endIsFocused: true, endPicking: true, startPicking: false };
+
+      // // disable manual range end value editing
+      // diff = isStartNotEnd ?
+      //   { startPicking: true, endPicking: false }
+      //   :
+      //   { endPicking: true, startPicking: false };
+
     } else if ('blur' === eventName) {
-      diff = isStartNotEnd ?
-        {
-          startIsFocused: false,
-          startVal: value
-        }
-        :
-        {
-          endIsFocused: false,
-          endVal: value
-        };
+      diff = isStartNotEnd ? { startIsFocused: false } : { endIsFocused: false };
+      diff.rangeEndValEntered = value;
     }
 
     this.negotiateStateDiff(diff);
-
-    console.log(isStartNotEnd, eventName);
   }
 
   render() {
-    const s = this.state;
-    // const isWaiting = (s.loading || !s.initialized);
-    console.log(s);
-
     const {
-      startPicking, endPicking, startVal, endVal, startIsFocused, endIsFocused
+      forbidDayBack, forbidHourBack,
+      daysFrame, hoursFrame, qMinutesFrame,
+      startPicking, endPicking, startValStr, endValStr, startIsFocused, endIsFocused
     } = this.state;
 
     return <div className="bookie-container">
       <PickerItemList className="pick-day"
-        items={s.daysFrame}
+        items={daysFrame}
         onClick={(item, index) => { this.clickDay(item); } }
         wrapWithArrows
+        forbidBack={forbidDayBack}
         />
 
       <PickerItemList className="pick-minutes"
-        items={s.qMinutesFrame}
+        items={qMinutesFrame}
         onClick={(item, index) => { this.clickQuarter(index); } }
         />
 
       <PickerItemList className="pick-hour"
-        items={s.hoursFrame}
+        items={hoursFrame}
         onClick={(item, index) => { this.clickHour(item); } }
         wrapWithArrows
+        forbidBack={forbidHourBack}
         />
 
+      {
+        // the structure of the data for range picker within the state is subject to change substantionally
+        // once it would be changed the refactoring would be done to split DATA argument into plain set of parameters
+      }
       <PickerDateRange
-        data={{ startPicking, endPicking, startVal, endVal, startIsFocused, endIsFocused }}
+        data={{ startPicking, endPicking, startValStr, endValStr, startIsFocused, endIsFocused }}
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
     </div>;

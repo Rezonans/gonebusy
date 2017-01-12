@@ -32,12 +32,12 @@ class PickerDateRange extends Component {
   }
 
   render() {
-    const { startPicking, endPicking, startVal, endVal, startIsFocused, endIsFocused} = (this.props.data || {});
+    const { startPicking, endPicking, startValStr, endValStr, startIsFocused, endIsFocused} = (this.props.data || {});
     const onEvent = this.props.onEvent;
     return <div className="range">
-      {this.getItem(startVal, startPicking, startIsFocused, true, onEvent)}
+      {this.getItem(startValStr, startPicking, startIsFocused, true, onEvent)}
       <span>&nbsp;&mdash;&nbsp;</span>
-      {this.getItem(endVal, endPicking, endIsFocused, false, onEvent)}
+      {this.getItem(endValStr, endPicking, endIsFocused, false, onEvent)}
     </div>;
   }
 }
