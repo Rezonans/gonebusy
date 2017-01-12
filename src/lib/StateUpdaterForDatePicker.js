@@ -16,32 +16,120 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     return result;
   }
 
-  setHoursFrameStart() {
-    const s = this.virtualState();
-    const dayPickedData = this.getDataForDate(s.dayPicked);
-
-    let hoursFrameStart = 0;
-    if (undefined !== s.hoursFrameStart)
-      hoursFrameStart = s.hoursFrameStart;
-    else if (dayPickedData && dayPickedData.presentHours.length)
-      hoursFrameStart = dayPickedData.presentHours[0];
-    this.add({ hoursFrameStart });
+  setFlags() {
+    const [vs, ps] = [this.virtualState(), this.privateState];
+    const daysFrameChanged = vs.daysFrameStart !== ps.daysFrameStart;
+    const hoursFrameChanged = vs.hoursFrameStart !== ps.hoursFrameStart;
+    this.add({ daysFrameChanged, hoursFrameChanged });
   }
 
-  setPickedHour() {
-    const s = this.state();
-    let { hourPicked } = s;
-    const { hoursFrame, dayPicked } = s;
-
-    if (!hoursFrame.find(
-      item => item.day === dayPicked && item.hour === hourPicked && !item.disabled
-    )) {
-      const entry = hoursFrame.find(
-        item => !item.disabled && item.day === dayPicked
-      ) || { hour: undefined };
-      hourPicked = entry.hour;
+  rangeSwitchPickedEnd() {
+    const s = this.virtualState();
+    let { startPicking } = s;
+    const { endPicking, startVal, endVal } = s;
+    if (!(startPicking || endPicking)) {
+      startPicking = true;
+      this.add({ startPicking });
     }
-    this.add({ hourPicked });
+
+    const pickedSideChanged = (this.privateState.startPicking !== startPicking);
+
+    const val = startPicking ? startVal : endVal;
+    // sets picked data
+    if (pickedSideChanged)
+      this.add(Scheduler.parseEnteredDateOrUndefined(val));
+  }
+
+  readRangeEndValEntered() {
+    const s = this.virtualState();
+    const { rangeEndValEntered } = s;
+
+    if (undefined !== rangeEndValEntered) {
+      const parsedValue = Scheduler.parseEnteredDate(rangeEndValEntered);
+      if (parsedValue)
+        this.add(parsedValue);
+    }
+  }
+
+  prepareDaysFrame() {
+    const s = this.virtualState();
+    let { daysFrameStart, dayPicked } = s;
+    const { daysFrameChanged } = s;
+
+    daysFrameStart = daysFrameStart || dayPicked || Scheduler.getUtcTodayString();
+    let daysFrame = Scheduler.getDaysFrame(daysFrameStart);
+    if (dayPicked && !daysFrame.find(item => item.val === dayPicked)) {
+      if (daysFrameChanged)
+        dayPicked = daysFrame[0].val;
+      else {
+        daysFrameStart = dayPicked;
+        daysFrame = Scheduler.getDaysFrame(daysFrameStart);
+      }
+    }
+
+    dayPicked = dayPicked || daysFrameStart;
+    daysFrame.forEach((item) => {
+      item.current = (item.val === dayPicked);
+    });
+
+    const forbidDayBack = Scheduler.previousIsPast(daysFrame[0].val, 0, true);
+    this.add({ daysFrameStart, dayPicked, daysFrame, forbidDayBack });
+  }
+
+  prepareHoursFrame() {
+    const s = this.virtualState();
+    const { hoursFrameChanged, dayPicked } = s;
+    let { hoursFrameStart, hourPicked } = s;
+    const dayPickedData = this.getDataForDate(dayPicked);
+
+    const firstPresentHour = dayPickedData.presentHours.find(
+      hour => (!Scheduler.isPast(dayPicked, hour))
+    );
+    const currentHour = Scheduler.getCurrentHour();
+    if (Scheduler.getUtcTodayString() === dayPicked) {
+      if (hoursFrameStart < currentHour)
+        hoursFrameStart = undefined;
+      if (hourPicked < currentHour)
+        hourPicked = undefined;
+    }
+
+    hoursFrameStart = hoursFrameStart || firstPresentHour || currentHour;
+
+    // consider the case when data's present and picked is not within the frame
+    let hoursFrame = Scheduler.getHoursFrame(dayPicked, hoursFrameStart);
+    if (~dayPickedData.presentHours.indexOf(hourPicked)) {
+      if (!hoursFrame.find(item =>
+        item.day === dayPicked && item.hour === hourPicked
+      )) {
+        if (hoursFrameChanged)
+          hourPicked = undefined;
+        else {
+          hoursFrameStart = hourPicked;
+          hoursFrame = Scheduler.getHoursFrame(dayPicked, hoursFrameStart);
+        }
+      }
+    } else
+      hourPicked = undefined;
+
+    // disable what's missing
+    hoursFrame.forEach((item) => {
+      item.disabled = Scheduler.isPast(item.day, item.hour) ||
+        !this.getDataForDate(item.day).presentSlots[item.hour];
+    });
+
+    if (undefined === hourPicked) {
+      const firstEnabledItem = hoursFrame.find(item => !item.disabled && item.day === dayPicked);
+      if (firstEnabledItem)
+        hourPicked = firstEnabledItem.hour;
+    }
+
+    (hoursFrame.find(
+      item => (item.day === dayPicked && item.hour === hourPicked)
+    ) || {}).current = true;
+
+    const forbidHourBack = Scheduler.previousIsPast(hoursFrame[0].day, hoursFrame[0].hour, false);
+
+    this.add({ hoursFrameStart, hoursFrame, hourPicked, forbidHourBack });
   }
 
   setMinutesFrameAndIdx() {
@@ -69,98 +157,38 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
   }
 
   updateRange() {
-    const defaultRamgeEndValue = (startNotEnd) => {
-      return `choose ${startNotEnd ? 'start' : 'end'}`;
-    };
+    const defaultEndText = (startNotEnd => (`choose ${startNotEnd ? 'start' : 'end'}`));
 
     const s = this.virtualState();
-    let { startPicking, startVal, endVal } = s;
-    const { endPicking, dayPicked, hourPicked, minutesIdxPicked } = s;
+    let { startValStr, endValStr, startVal, endVal } = s;
+    const { startPicking, dayPicked, hourPicked, minutesIdxPicked } = s;
 
-
-    if (!(startPicking || endPicking))
-      startPicking = true;
-
+    const pickedVal = Scheduler.getRangeEndValue(dayPicked, hourPicked, minutesIdxPicked);
     if (startPicking)
-      startVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked);
-    startVal = startVal || defaultRamgeEndValue(true);
+      startVal = pickedVal;
+    else
+      endVal = pickedVal;
 
-    if (endPicking)
-      endVal = Scheduler.getRangeEndFormatted(dayPicked, hourPicked, minutesIdxPicked);
-    endVal = endVal || defaultRamgeEndValue(false);
+    startValStr = startVal ? Scheduler.getRangeEndFormatted(startVal) : defaultEndText(true);
+    endValStr = endVal ? Scheduler.getRangeEndFormatted(endVal) : defaultEndText(false);
 
-    this.add({ startPicking, startVal, endVal });
+    this.add({ startValStr, endValStr, startVal, endVal });
   }
 
   cleanupDiff() {
-    delete this.privateDiff.rangeEndValueEntered;
-
+    const p = this.privateDiff;
+    ['rangeEndValEntered', 'daysFrameChanged', 'hoursFrameChanged']
+      .forEach((key) => { delete p[key]; });
     // afterall, to make virtualState consistent
     this.add({});
   }
 
-
-  readRangeEndValueEntered() {
-    const s = this.virtualState();
-    const { rangeEndValueEntered } = s;
-
-    if (undefined != rangeEndValueEntered) {
-      const parsedValue = Scheduler.parseEnteredDate(rangeEndValueEntered);
-      if (parsedValue) {
-        console.log(parsedValue);
-        this.add(parsedValue);
-        // should happen if it's not inside frame
-        this.add({ daysFrameStart: parsedValue.dayPicked, hoursFrameStart: parsedValue.hourPicked });
-      }
-    }
-  }
-
   adjust() {
-    this.readRangeEndValueEntered();
-
-    let { daysFrameStart, dayPicked } = this.virtualState();
-
-    // ensure day frame start
-    daysFrameStart = daysFrameStart || Scheduler.getUtcTodayString();
-
-    // fill day frame
-    const daysFrame = Scheduler.getDaysFrame(daysFrameStart);
-
-    // ensure picked date
-    dayPicked = dayPicked || daysFrameStart;
-    if (!daysFrame.find(item => (dayPicked === item.val))) {
-      dayPicked = daysFrame[0].val;
-      this.add({ hourPicked: undefined, minutesIdxPicked: undefined });
-    }
-
-    // fetch data have been here
-    this.add({ daysFrameStart, daysFrame, dayPicked });
-
-    // process day frame
-    daysFrame.forEach((item) => { item.current = (item.val === dayPicked); });
-
-    this.setHoursFrameStart();
-
-    const hoursFrame = Scheduler.getHoursFrame(dayPicked, this.state().hoursFrameStart);
-
-    this.add({ hoursFrame });
-
-    // disable what's missing
-    hoursFrame.forEach((item) => {
-      item.disabled = !this.getDataForDate(item.day).presentSlots[item.hour];
-    });
-
-    this.setPickedHour();
-
-    // set current hour
-    (this.state().hoursFrame.find(
-      item => (item.day === dayPicked && item.hour === this.state().hourPicked)
-    ) || {}).current = true;
-
-    const forbidDayBack = Scheduler.isPastOrToday(daysFrame[0].val);
-    const forbidHourBack = Scheduler.isPastOrToday(hoursFrame[0].day);
-    this.add({ forbidDayBack, forbidHourBack });
-
+    this.setFlags();
+    this.rangeSwitchPickedEnd();
+    this.readRangeEndValEntered();
+    this.prepareDaysFrame();
+    this.prepareHoursFrame();
     this.setMinutesFrameAndIdx();
     this.updateRange();
     this.cleanupDiff();
