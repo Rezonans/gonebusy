@@ -4,25 +4,26 @@ import { Promise } from 'bluebird';
 import Scheduler from './Scheduler';
 
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
+const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
 
 const config = {
   baseUri: 'http://sandbox.gonebusy.com/api/v1'
 };
 
 // @to-do log warning if no env variables provided
-const { REACT_APP_SERVICE_ID: serviceId, REACT_APP_GONEBUSY_TOKEN: token } = process.env;
+const { REACT_APP_SERVICE_ID: service_id, REACT_APP_GONEBUSY_TOKEN: authorization } = process.env;
 
 gonebusy.configuration.BASEURI = config.baseUri;
 
 class BusyWrapper {
   static getServiceNamePromise() {
-    return ServicesController.getServicesAsync({ authorization: token });
+    return ServicesController.getServicesAsync({ authorization });
   }
 
   static getServiceAvailableSlotsByIdPromise(date) {
     return ServicesController.getServiceAvailableSlotsByIdAsync({
-      authorization: token,
-      id: serviceId,
+      authorization,
+      id: service_id,
       // date
       startDate: date,
       endDate: Scheduler.getNextDayString(date)
