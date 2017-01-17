@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import { Button } from 'react-bootstrap';
 
 import BusyAdapter from '../lib/BusyAdapter';
 import Scheduler from '../lib/Scheduler';
@@ -172,21 +173,19 @@ class Bookie extends Component {
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
 
-      <p>{(() => {
-        const caption = 'Book w/o delay';
-        return startVal ?
-          <a onClick={() => { this.createBooking(false); } }>{caption}</a>
-          :
-          caption;
-      })()}</p>
+      <Button
+        disabled={!startVal}
+        onClick={() => { this.createBooking(false); } }>
+        Book w/o delay
+      </Button>
 
-      <p>{(() => {
-        const caption = 'Book range';
-        return startVal && endVal && startVal !== endVal ?
-          <a onClick={() => { this.createBooking(true); } }>{caption}</a>
-          :
-          caption;
-      })()}</p>
+      <br />
+
+      <Button
+        disabled={!(startVal && endVal && startVal !== endVal)}
+        onClick={() => { this.createBooking(true); } }>
+        Book range
+      </Button>
 
       <p><a onClick={() => { this.enumerateBookings(); } }>List bookings</a></p>
       {
@@ -196,6 +195,7 @@ class Bookie extends Component {
         //   // BusyAdapter.cancelBookingPromise('9123044').then(response => { console.log('cancelling booking: ', response); });
         // } }>drop bookings</a></p>
       }
+
 
     </div>;
   }
