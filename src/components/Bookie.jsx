@@ -171,9 +171,25 @@ class Bookie extends Component {
       <PickerDateRange {...{ pickingStartNotEnd, isFocused, startValStr, endValStr }}
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
+
+      <p><a onClick={() => { alert('thanks a lot'); } }>click me please</a></p>
+      <p><a onClick={() => { this.enumerateBookings(); } }>list bookings</a></p>
+      <p><a onClick={() => {
+        BusyAdapter.createBookingPromise().then(response => { console.log('creating booking: ', response); });
+      } }>Book it!</a></p>
+      <p><a onClick={() => {
+        // BusyAdapter.cancelBookingPromise('4890103472').then(response => { console.log('cancelling booking: ', response); });
+        // BusyAdapter.cancelBookingPromise('9128773044').then(response => { console.log('cancelling booking: ', response); });
+        // BusyAdapter.cancelBookingPromise('9123044').then(response => { console.log('cancelling booking: ', response); });
+      } }>drop bookings</a></p>
     </div>;
   }
+
+  enumerateBookings() {
+    BusyAdapter.getBookingsPromise().then(response => { console.log('existing bookings: ', response); });
+  }
 }
+
 
 Bookie.propTypes = {
   onSetLoading: PropTypes.func

@@ -1,10 +1,14 @@
-import gonebusy from 'gonebusy-nodejs-client/lib';
+import gonebusy, {
+  // BookingsController
+  CreateBookingBody
+} from 'gonebusy-nodejs-client/lib';
+
 import { Promise } from 'bluebird';
 
 import Scheduler from './Scheduler';
 
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
-// const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
+const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
 
 const config = {
   baseUri: 'http://sandbox.gonebusy.com/api/v1'
@@ -35,6 +39,47 @@ class BusyWrapper {
       });
       return slotData;
     });
+  }
+
+  static getBookingsPromise() {
+    return BookingsController.getBookingsAsync({ authorization });
+  }
+
+  static createBookingPromise() {
+    const params = {
+      // serviceId: service_id,
+      service_id,
+      date: '2017-01-13',
+      time: '13:15'
+      // , duration: 30
+
+      // resource_id,
+      // user_id,
+    };
+
+    const createBookingBody = new CreateBookingBody(params);
+
+
+    // {
+    // service_id: 7891245607,
+    // date: '2017-01-14',
+    // time: '11:30',
+    // duration: 30
+    // }
+
+    return BookingsController.createBookingAsync({ authorization, createBookingBody });
+
+    // const request = Object.assign({ authorization }, params);
+    // console.log(request);
+
+    // return new Promise((resolve)=>{
+    //   resolve(false);
+    // });
+    // return BookingsController.createBookingAsync(request);
+  }
+
+  static cancelBookingPromise(id) {
+    return BookingsController.cancelBookingByIdAsync({ authorization, id });
   }
 }
 
