@@ -31,29 +31,16 @@ class Bookie extends Component {
 
       forbidDayBack: false,
       forbidHourBack: false,
+      forbidDayForward: false,
+      forbidHourForward: false,
 
       startVal: undefined,
       startValStr: undefined,
-      startPicking: undefined,
-      startIsFocused: false,
 
+      pickingStartNotEnd: true,
+      isFocused: false,
       endVal: undefined,
       endValStr: undefined,
-      endPicking: undefined,
-      endIsFocused: false,
-
-      // range: {
-      //   start: {
-      //     val: undefined,
-      //     title: undefined,
-      //   },
-      //   end: {
-      //     val: undefined,
-      //     title: undefined,
-      //   },
-      //   current: 'start',
-      // isFocused: false
-      // }
     };
   }
 
@@ -145,31 +132,18 @@ class Bookie extends Component {
 
   onPickerDateRangeEvent(isStartNotEnd, eventName, value) {
     let diff = {};
-    if ('click' === eventName) {
-      diff = isStartNotEnd ?
-        { startIsFocused: true, startPicking: true, endPicking: false }
-        :
-        { endIsFocused: true, endPicking: true, startPicking: false };
-
-      // // disable manual range end value editing
-      // diff = isStartNotEnd ?
-      //   { startPicking: true, endPicking: false }
-      //   :
-      //   { endPicking: true, startPicking: false };
-
-    } else if ('blur' === eventName) {
-      diff = isStartNotEnd ? { startIsFocused: false } : { endIsFocused: false };
-      diff.rangeEndValEntered = value;
-    }
-
+    if ('click' === eventName)
+      diff = { pickingStartNotEnd: isStartNotEnd, isFocused: false };
+    else if ('blur' === eventName)
+      diff = { isFocused: false, rangeEndValEntered: value };
     this.negotiateStateDiff(diff);
   }
 
   render() {
     const {
-      forbidDayBack, forbidHourBack,
+      forbidDayBack, forbidHourBack, forbidDayForward, forbidHourForward,
       daysFrame, hoursFrame, qMinutesFrame,
-      startPicking, endPicking, startValStr, endValStr, startIsFocused, endIsFocused
+      pickingStartNotEnd, isFocused, startValStr, endValStr
     } = this.state;
 
     return <div className="bookie-container">
@@ -178,6 +152,7 @@ class Bookie extends Component {
         onClick={(item, index) => { this.clickDay(item); } }
         wrapWithArrows
         forbidBack={forbidDayBack}
+        forbidForward={forbidDayForward}
         />
 
       <PickerItemList className="pick-minutes"
@@ -190,14 +165,10 @@ class Bookie extends Component {
         onClick={(item, index) => { this.clickHour(item); } }
         wrapWithArrows
         forbidBack={forbidHourBack}
+        forbidForward={forbidHourForward}
         />
 
-      {
-        // the structure of the data for range picker within the state is subject to change substantionally
-        // once it would be changed the refactoring would be done to split DATA argument into plain set of parameters
-      }
-      <PickerDateRange
-        data={{ startPicking, endPicking, startValStr, endValStr, startIsFocused, endIsFocused }}
+      <PickerDateRange {...{ pickingStartNotEnd, isFocused, startValStr, endValStr }}
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
     </div>;

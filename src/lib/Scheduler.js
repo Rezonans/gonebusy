@@ -79,12 +79,8 @@ class Scheduler {
     return result;
   }
 
-  static getUtcTodayString() {
-    return formatDayToString(moment.utc());
-  }
-
-  static getCurrentHour() {
-    return moment().hour();
+  static getNowStr() {
+    return moment().startOf('minute').format();
   }
 
   static getNextDayString(date) {
@@ -99,15 +95,14 @@ class Scheduler {
   static getRangeEndValue(day, hour, qMinutesIdx) {
     if (undefined === day || undefined === hour || undefined === qMinutesIdx)
       return undefined;
-
-    return moment.utc(day).add(hour, 'hours').add(15 * qMinutesIdx, 'minutes').format();
+    return moment(day).add(hour, 'hours').add(15 * qMinutesIdx, 'minutes').format();
   }
 
-  static getRangeEndFormatted(utcDateStr) {
+  static getRangeEndFormatted(dateStr) {
     let result = '';
-    if (utcDateStr) {
-      const mVal = moment.utc(utcDateStr);
-      const mToday = moment.utc();
+    if (dateStr) {
+      const mVal = moment(dateStr);
+      const mToday = moment();
       if (formatDayToString(mToday) === formatDayToString(mVal))
         result = mVal.format('ha:mm');
       else if (mToday.year() === mVal.year())
@@ -118,19 +113,20 @@ class Scheduler {
     return result;
   }
 
-  static isPast(date, hours) {
-    return moment().isAfter(moment(date).add(hours, 'hours'), 'hours');
+  static isAfter(date, hours, base) {
+    const momentToCompare = moment(date).add(hours, 'hours');
+    return moment(base).isAfter(momentToCompare, 'hour');
   }
 
-  static previousIsPast(date, hours, dayNotHour) {
+  static previousIsAfter(date, hours, dayNotHour, base) {
     const unit = dayNotHour ? 'day' : 'hour';
     const momentToCompare = moment(date).add(hours, 'hours').subtract(1, unit);
-    return moment().isAfter(momentToCompare, unit);
+    return moment(base).isAfter(momentToCompare, unit);
   }
 
   static parseEnteredDate(strValue) {
     // also, format is valid: 2017-01-11T09:26:46Z
-    const mVal = moment.utc(
+    const mVal = moment(
       strValue,
       ['ha:mm', 'MM-DD ha:mm', 'YYYY-MM-DD ha:mm', 'YYYY-MM-DD', 'YYYY-MM-DD HH:mm Z']
     );
@@ -152,6 +148,13 @@ class Scheduler {
     };
   }
 
+  static getDayStr(dateTimeStr) {
+    return formatDayToString(moment(dateTimeStr));
+  }
+
+  static getHour(dateTimeStr) {
+    return moment(dateTimeStr).hour();
+  }
 }
 
 export default Scheduler;
