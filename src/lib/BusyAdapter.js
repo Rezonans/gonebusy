@@ -1,7 +1,4 @@
-import gonebusy, {
-  // BookingsController
-  CreateBookingBody
-} from 'gonebusy-nodejs-client/lib';
+import gonebusy, { CreateBookingBody } from 'gonebusy-nodejs-client/lib';
 
 import { Promise } from 'bluebird';
 
@@ -28,11 +25,9 @@ class BusyWrapper {
     return ServicesController.getServiceAvailableSlotsByIdAsync({
       authorization,
       id: service_id,
-      // date
       startDate: date,
       endDate: Scheduler.getNextDayString(date)
     }).then((data) => {
-      // console.log(data);
       const slotData = [];
       data.service.resources[0].availableSlots.forEach((x) => {
         slotData.push(...x.slots.split(', '));
@@ -45,7 +40,7 @@ class BusyWrapper {
     return BookingsController.getBookingsAsync({ authorization });
   }
 
-  static createBookingPromise({date, time, duration}) {
+  static createBookingPromise({ date, time, duration }) {
     const params = {
       service_id,
       date,
@@ -55,7 +50,6 @@ class BusyWrapper {
       params.duration = duration;
 
     console.log(params);
-    // return new Promise((resolve, reject) => { resolve(params); });
 
     const createBookingBody = new CreateBookingBody(params);
     return BookingsController.createBookingAsync({ authorization, createBookingBody });

@@ -173,35 +173,14 @@ class Bookie extends Component {
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
 
-      <Button
-        disabled={!startVal}
-        onClick={() => { this.createBooking(false); } }>
-        Book w/o delay
-      </Button>
-
-      <br />
-
-      <Button
-        disabled={!(startVal && endVal && startVal !== endVal)}
-        onClick={() => { this.createBooking(true); } }>
-        Book range
-      </Button>
-
-      <p><a onClick={() => { this.enumerateBookings(); } }>List bookings</a></p>
-      {
-        // <p><a onClick={() => {
-        //   // BusyAdapter.cancelBookingPromise('4890103472').then(response => { console.log('cancelling booking: ', response); });
-        //   // BusyAdapter.cancelBookingPromise('9128773044').then(response => { console.log('cancelling booking: ', response); });
-        //   // BusyAdapter.cancelBookingPromise('9123044').then(response => { console.log('cancelling booking: ', response); });
-        // } }>drop bookings</a></p>
-      }
-
-
+      <div className="text-center">
+        <Button
+          disabled={!(startVal && endVal && startVal !== endVal)}
+          onClick={() => { this.createBooking(true); } }>
+          Book
+        </Button>
+      </div>
     </div>;
-  }
-
-  enumerateBookings() {
-    BusyAdapter.getBookingsPromise().then(response => { console.log('existing bookings: ', response); });
   }
 
   createBooking(settingDelay = true) {
