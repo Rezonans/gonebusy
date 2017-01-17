@@ -133,7 +133,7 @@ class Bookie extends Component {
   onPickerDateRangeEvent(isStartNotEnd, eventName, value) {
     let diff = {};
     if ('click' === eventName)
-      diff = { pickingStartNotEnd: isStartNotEnd, isFocused: true };
+      diff = { pickingStartNotEnd: isStartNotEnd, isFocused: false };
     else if ('blur' === eventName)
       diff = { isFocused: false, rangeEndValEntered: value };
     this.negotiateStateDiff(diff);
