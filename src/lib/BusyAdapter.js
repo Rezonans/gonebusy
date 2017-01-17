@@ -45,37 +45,20 @@ class BusyWrapper {
     return BookingsController.getBookingsAsync({ authorization });
   }
 
-  static createBookingPromise() {
+  static createBookingPromise({date, time, duration}) {
     const params = {
-      // serviceId: service_id,
       service_id,
-      date: '2017-01-13',
-      time: '13:15'
-      // , duration: 30
-
-      // resource_id,
-      // user_id,
+      date,
+      time
     };
+    if (undefined !== duration)
+      params.duration = duration;
+
+    console.log(params);
+    // return new Promise((resolve, reject) => { resolve(params); });
 
     const createBookingBody = new CreateBookingBody(params);
-
-
-    // {
-    // service_id: 7891245607,
-    // date: '2017-01-14',
-    // time: '11:30',
-    // duration: 30
-    // }
-
     return BookingsController.createBookingAsync({ authorization, createBookingBody });
-
-    // const request = Object.assign({ authorization }, params);
-    // console.log(request);
-
-    // return new Promise((resolve)=>{
-    //   resolve(false);
-    // });
-    // return BookingsController.createBookingAsync(request);
   }
 
   static cancelBookingPromise(id) {

@@ -172,7 +172,10 @@ class Bookie extends Component {
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
 
-      <p><a onClick={() => { alert('thanks a lot'); } }>click me please</a></p>
+      <p><a onClick={() => { this.createBooking(false); } }>Book w/o delay</a></p>
+
+      <br />
+
       <p><a onClick={() => { this.enumerateBookings(); } }>list bookings</a></p>
       <p><a onClick={() => {
         BusyAdapter.createBookingPromise().then(response => { console.log('creating booking: ', response); });
@@ -187,6 +190,17 @@ class Bookie extends Component {
 
   enumerateBookings() {
     BusyAdapter.getBookingsPromise().then(response => { console.log('existing bookings: ', response); });
+  }
+
+  createBooking(settingDelay = true) {
+    // static createBookingPromise({date, time, duration}) {
+    const { startVal, endVal } = this.state;
+    if (startVal && (endVal || !settingDelay)) {
+      const bookingArgs = Scheduler.getBookingArgs(startVal, endVal, settingDelay);
+      BusyAdapter.createBookingPromise(bookingArgs).then(response => { console.log('creating booking: ', response); });
+    }
+    // const { dayPicked, hourPicked, minutesIdxPicked } = s;
+    // const pickedVal = Scheduler.getRangeEndValue(dayPicked, hourPicked, minutesIdxPicked);
   }
 }
 

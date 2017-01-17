@@ -155,6 +155,16 @@ class Scheduler {
   static getHour(dateTimeStr) {
     return moment(dateTimeStr).hour();
   }
+
+  static getBookingArgs(startVal, endVal, settingDelay) {
+    const mStart = moment(startVal);
+    // '2017-01-13'
+    const date = formatDayToString(mStart);
+    // '13:15'
+    const time = mStart.format('HH:mm');
+    const duration = undefined;
+    return { date, time, duration };
+  }
 }
 
 export default Scheduler;
