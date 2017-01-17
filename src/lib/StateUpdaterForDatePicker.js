@@ -25,16 +25,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
 
   rangeSwitchPickedEnd() {
     const s = this.virtualState();
-    let { startPicking } = s;
-    const { endPicking, startVal, endVal } = s;
-    if (!(startPicking || endPicking)) {
-      startPicking = true;
-      this.add({ startPicking });
-    }
-
-    const pickedSideChanged = (this.privateState.startPicking !== startPicking);
-
-    const val = startPicking ? startVal : endVal;
+    const { pickingStartNotEnd, startVal, endVal } = s;
+    const pickedSideChanged = (this.privateState.pickingStartNotEnd !== pickingStartNotEnd);
+    const val = pickingStartNotEnd ? startVal : endVal;
     // sets picked data
     if (pickedSideChanged)
       this.add(Scheduler.parseEnteredDateOrUndefined(val));
@@ -51,12 +44,47 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     }
   }
 
+  setMinMaxDateScope() {
+    const s = this.virtualState();
+    const { pickingStartNotEnd, startVal, endVal } = s;
+    const curDateTime = Scheduler.getNowStr();
+
+    let scopeMin;
+    let scopeMax;
+
+    if (pickingStartNotEnd) {
+      scopeMax = endVal;
+      scopeMin = curDateTime;
+    } else
+      scopeMin = startVal || curDateTime;
+
+    this.add({ scopeMin, scopeMax });
+  }
+
+  getMinMaxDateTimes() {
+    const { scopeMin, scopeMax } = this.virtualState();
+    const [minDayStr, minHour] = [Scheduler.getDayStr(scopeMin), Scheduler.getHour(scopeMin)];
+    const [maxDayStr, maxHour] = scopeMax ?
+      [Scheduler.getDayStr(scopeMax), Scheduler.getHour(scopeMax)]
+      :
+      [undefined, undefined];
+    return { minDayStr, minHour, maxDayStr, maxHour };
+  }
+
   prepareDaysFrame() {
     const s = this.virtualState();
     let { daysFrameStart, dayPicked } = s;
     const { daysFrameChanged } = s;
+    const { minDayStr, maxDayStr } = this.getMinMaxDateTimes();
 
-    daysFrameStart = daysFrameStart || dayPicked || Scheduler.getUtcTodayString();
+    if (dayPicked) {
+      if (Scheduler.isAfter(dayPicked, 0, minDayStr))
+        dayPicked = minDayStr;
+      if (maxDayStr && Scheduler.isAfter(maxDayStr, 0, dayPicked))
+        dayPicked = maxDayStr;
+    }
+
+    daysFrameStart = daysFrameStart || dayPicked || minDayStr;
     let daysFrame = Scheduler.getDaysFrame(daysFrameStart);
     if (dayPicked && !daysFrame.find(item => item.val === dayPicked)) {
       if (daysFrameChanged)
@@ -67,33 +95,48 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
       }
     }
 
-    dayPicked = dayPicked || daysFrameStart;
+    dayPicked = dayPicked || minDayStr;
     daysFrame.forEach((item) => {
       item.current = (item.val === dayPicked);
+      if (
+        (maxDayStr && Scheduler.isAfter(maxDayStr, 0, item.val))
+        ||
+        Scheduler.isAfter(item.val, 0, minDayStr)
+      )
+        item.disabled = true;
     });
 
-    const forbidDayBack = Scheduler.previousIsPast(daysFrame[0].val, 0, true);
-    this.add({ daysFrameStart, dayPicked, daysFrame, forbidDayBack });
+    const forbidDayBack = Scheduler.previousIsAfter(daysFrame[0].val, 0, true, minDayStr);
+    const forbidDayForward = maxDayStr &&
+      Scheduler.previousIsAfter(maxDayStr, 0, true, daysFrame[daysFrame.length - 1].val);
+
+    this.add({ daysFrameStart, dayPicked, daysFrame, forbidDayBack, forbidDayForward });
   }
 
   prepareHoursFrame() {
     const s = this.virtualState();
-    const { hoursFrameChanged, dayPicked } = s;
+    const { hoursFrameChanged, dayPicked, scopeMin, scopeMax } = s;
     let { hoursFrameStart, hourPicked } = s;
     const dayPickedData = this.getDataForDate(dayPicked);
+    const { minDayStr, minHour, maxDayStr, maxHour } = this.getMinMaxDateTimes();
 
     const firstPresentHour = dayPickedData.presentHours.find(
-      hour => (!Scheduler.isPast(dayPicked, hour))
+      hour => (!Scheduler.isAfter(dayPicked, hour, scopeMin))
     );
-    const currentHour = Scheduler.getCurrentHour();
-    if (Scheduler.getUtcTodayString() === dayPicked) {
-      if (hoursFrameStart < currentHour)
+
+    if (minDayStr === dayPicked) {
+      if (hoursFrameStart < minHour)
         hoursFrameStart = undefined;
-      if (hourPicked < currentHour)
+      if (hourPicked < minHour)
         hourPicked = undefined;
     }
 
-    hoursFrameStart = hoursFrameStart || firstPresentHour || currentHour;
+    if (scopeMax && maxDayStr === dayPicked) {
+      if (hourPicked > maxHour)
+        hourPicked = undefined;
+    }
+
+    hoursFrameStart = hoursFrameStart || firstPresentHour || minHour;
 
     // consider the case when data's present and picked is not within the frame
     let hoursFrame = Scheduler.getHoursFrame(dayPicked, hoursFrameStart);
@@ -113,7 +156,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
 
     // disable what's missing
     hoursFrame.forEach((item) => {
-      item.disabled = Scheduler.isPast(item.day, item.hour) ||
+      item.disabled =
+        (scopeMax && Scheduler.isAfter(scopeMax, -item.hour, item.day)) ||
+        Scheduler.isAfter(item.day, item.hour, scopeMin) ||
         !this.getDataForDate(item.day).presentSlots[item.hour];
     });
 
@@ -127,9 +172,12 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
       item => (item.day === dayPicked && item.hour === hourPicked)
     ) || {}).current = true;
 
-    const forbidHourBack = Scheduler.previousIsPast(hoursFrame[0].day, hoursFrame[0].hour, false);
-
-    this.add({ hoursFrameStart, hoursFrame, hourPicked, forbidHourBack });
+    const forbidHourBack =
+      Scheduler.previousIsAfter(hoursFrame[0].day, hoursFrame[0].hour, false, scopeMin);
+    const lastHourItem = hoursFrame[hoursFrame.length - 1];
+    const forbidHourForward = scopeMax &&
+      Scheduler.previousIsAfter(scopeMax, -lastHourItem.hour, false, lastHourItem.day);
+    this.add({ hoursFrameStart, hoursFrame, hourPicked, forbidHourBack, forbidHourForward });
   }
 
   setMinutesFrameAndIdx() {
@@ -157,18 +205,17 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
   }
 
   updateRange() {
-    const defaultEndText = (startNotEnd => (`choose ${startNotEnd ? 'start' : 'end'}`));
-
     const s = this.virtualState();
     let { startValStr, endValStr, startVal, endVal } = s;
-    const { startPicking, dayPicked, hourPicked, minutesIdxPicked } = s;
+    const { pickingStartNotEnd, dayPicked, hourPicked, minutesIdxPicked } = s;
 
     const pickedVal = Scheduler.getRangeEndValue(dayPicked, hourPicked, minutesIdxPicked);
-    if (startPicking)
+    if (pickingStartNotEnd)
       startVal = pickedVal;
     else
       endVal = pickedVal;
 
+    const defaultEndText = (startNotEnd => (`choose ${startNotEnd ? 'start' : 'end'}`));
     startValStr = startVal ? Scheduler.getRangeEndFormatted(startVal) : defaultEndText(true);
     endValStr = endVal ? Scheduler.getRangeEndFormatted(endVal) : defaultEndText(false);
 
@@ -177,16 +224,22 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
 
   cleanupDiff() {
     const p = this.privateDiff;
-    ['rangeEndValEntered', 'daysFrameChanged', 'hoursFrameChanged']
-      .forEach((key) => { delete p[key]; });
-    // afterall, to make virtualState consistent
+    [
+      // necessary to cleanup
+      ...['rangeEndValEntered'],
+      // the list of synthetic parameters we use
+      ...['daysFrameChanged', 'hoursFrameChanged',
+        'scopeMin', 'scopeMax', 'minDayStr', 'minHour', 'maxDayStr', 'maxHour']
+    ].forEach((key) => { delete p[key]; });
     this.add({});
   }
+
 
   adjust() {
     this.setFlags();
     this.rangeSwitchPickedEnd();
     this.readRangeEndValEntered();
+    this.setMinMaxDateScope();
     this.prepareDaysFrame();
     this.prepareHoursFrame();
     this.setMinutesFrameAndIdx();

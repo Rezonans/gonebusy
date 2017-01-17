@@ -4,7 +4,7 @@ import { Promise } from 'bluebird';
 import Scheduler from './Scheduler';
 
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
-const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
+// const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
 
 const config = {
   baseUri: 'http://sandbox.gonebusy.com/api/v1'

@@ -4,20 +4,21 @@ import classNames from 'classnames';
 class PickerItemList extends Component {
   render() {
     const p = this.props;
+    const { wrapWithArrows, forbidBack, forbidForward, className, onClick, } = p;
 
     let items = (p.items || []);
-    if (p.wrapWithArrows)
+    if (wrapWithArrows)
       items = [
-        { title: '<<', val: 'rev', disabled: p.forbidBack },
+        { title: '<<', val: 'rev', disabled: forbidBack },
         ...items,
-        { title: '>>', val: 'fwd' },
+        { title: '>>', val: 'fwd', disabled: forbidForward },
       ];
 
-    return <ul className={p.className}>
+    return <ul className={className}>
       {items.map((item, index) => {
         const {current, disabled} = item;
-        const onClick = (p.onClick && !item.disabled) ? (() => { p.onClick(item, index); }) : undefined;
-        return <li key={index} className={classNames({ current, disabled })} onClick={onClick}>
+        const onItemClick = (onClick && !item.disabled) ? (() => { onClick(item, index); }) : undefined;
+        return <li key={index} className={classNames({ current, disabled })} onClick={onItemClick}>
           <a>{item.title}</a>
         </li>;
       })}
@@ -29,7 +30,8 @@ PickerItemList.propTypes = {
   items: PropTypes.array,
   onClick: PropTypes.func,
   wrapWithArrows: PropTypes.bool,
-  forbidBack: PropTypes.bool
+  forbidBack: PropTypes.bool,
+  forbidForward: PropTypes.bool
 };
 
 export default PickerItemList;

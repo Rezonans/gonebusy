@@ -1,5 +1,4 @@
-// import React, { Component, PropTypes } from 'react';
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import classNames from 'classnames';
 
 class PickerDateRange extends Component {
@@ -14,7 +13,7 @@ class PickerDateRange extends Component {
 
     let result = null;
 
-    if (isFocused)
+    if (isFocused && picking)
       result = <input
         type='text'
         defaultValue={val}
@@ -32,20 +31,21 @@ class PickerDateRange extends Component {
   }
 
   render() {
-    const { startPicking, endPicking, startValStr, endValStr, startIsFocused, endIsFocused} = (this.props.data || {});
-    const onEvent = this.props.onEvent;
+    const { pickingStartNotEnd, isFocused, startValStr, endValStr, onEvent } = this.props;
     return <div className="range">
-      {this.getItem(startValStr, startPicking, startIsFocused, true, onEvent)}
+      {this.getItem(startValStr, pickingStartNotEnd, isFocused, true, onEvent)}
       <span>&nbsp;&mdash;&nbsp;</span>
-      {this.getItem(endValStr, endPicking, endIsFocused, false, onEvent)}
+      {this.getItem(endValStr, !pickingStartNotEnd, isFocused, false, onEvent)}
     </div>;
   }
 }
 
-// PickerDateRange.propTypes = {
-//   items: PropTypes.array,
-//   onClick: PropTypes.func,
-//   wrapWithArrows: PropTypes.bool
-// };
+PickerDateRange.propTypes = {
+  pickingStartNotEnd: PropTypes.bool,
+  isFocused: PropTypes.bool,
+  startValStr: PropTypes.string,
+  endValStr: PropTypes.string,
+  onEvent: PropTypes.func,
+};
 
 export default PickerDateRange;
