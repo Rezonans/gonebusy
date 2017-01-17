@@ -162,7 +162,11 @@ class Scheduler {
     const date = formatDayToString(mStart);
     // '13:15'
     const time = mStart.format('HH:mm');
-    const duration = undefined;
+    // length in minutes
+    const duration = settingDelay ?
+      moment.duration(moment(endVal).diff(mStart)).asMinutes()
+      :
+      undefined;
     return { date, time, duration };
   }
 }

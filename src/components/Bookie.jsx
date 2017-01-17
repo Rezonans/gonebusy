@@ -143,7 +143,7 @@ class Bookie extends Component {
     const {
       forbidDayBack, forbidHourBack, forbidDayForward, forbidHourForward,
       daysFrame, hoursFrame, qMinutesFrame,
-      pickingStartNotEnd, isFocused, startValStr, endValStr
+      pickingStartNotEnd, isFocused, startValStr, endValStr, startVal, endVal
     } = this.state;
 
     return <div className="bookie-container">
@@ -172,19 +172,31 @@ class Bookie extends Component {
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
 
-      <p><a onClick={() => { this.createBooking(false); } }>Book w/o delay</a></p>
+      <p>{(() => {
+        const caption = 'Book w/o delay';
+        return startVal ?
+          <a onClick={() => { this.createBooking(false); } }>{caption}</a>
+          :
+          caption;
+      })()}</p>
 
-      <br />
+      <p>{(() => {
+        const caption = 'Book range';
+        return startVal && endVal && startVal !== endVal ?
+          <a onClick={() => { this.createBooking(true); } }>{caption}</a>
+          :
+          caption;
+      })()}</p>
 
-      <p><a onClick={() => { this.enumerateBookings(); } }>list bookings</a></p>
-      <p><a onClick={() => {
-        BusyAdapter.createBookingPromise().then(response => { console.log('creating booking: ', response); });
-      } }>Book it!</a></p>
-      <p><a onClick={() => {
-        // BusyAdapter.cancelBookingPromise('4890103472').then(response => { console.log('cancelling booking: ', response); });
-        // BusyAdapter.cancelBookingPromise('9128773044').then(response => { console.log('cancelling booking: ', response); });
-        // BusyAdapter.cancelBookingPromise('9123044').then(response => { console.log('cancelling booking: ', response); });
-      } }>drop bookings</a></p>
+      <p><a onClick={() => { this.enumerateBookings(); } }>List bookings</a></p>
+      {
+        // <p><a onClick={() => {
+        //   // BusyAdapter.cancelBookingPromise('4890103472').then(response => { console.log('cancelling booking: ', response); });
+        //   // BusyAdapter.cancelBookingPromise('9128773044').then(response => { console.log('cancelling booking: ', response); });
+        //   // BusyAdapter.cancelBookingPromise('9123044').then(response => { console.log('cancelling booking: ', response); });
+        // } }>drop bookings</a></p>
+      }
+
     </div>;
   }
 
@@ -193,14 +205,14 @@ class Bookie extends Component {
   }
 
   createBooking(settingDelay = true) {
-    // static createBookingPromise({date, time, duration}) {
     const { startVal, endVal } = this.state;
     if (startVal && (endVal || !settingDelay)) {
       const bookingArgs = Scheduler.getBookingArgs(startVal, endVal, settingDelay);
-      BusyAdapter.createBookingPromise(bookingArgs).then(response => { console.log('creating booking: ', response); });
+      console.log(bookingArgs);
+      BusyAdapter.createBookingPromise(bookingArgs)
+        .then(response => { console.log('creating booking: ', response); })
+        .catch(ex => { console.log('failed to create booking, ', ex) });
     }
-    // const { dayPicked, hourPicked, minutesIdxPicked } = s;
-    // const pickedVal = Scheduler.getRangeEndValue(dayPicked, hourPicked, minutesIdxPicked);
   }
 }
 
