@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import { Button } from 'react-bootstrap';
 
 import BusyAdapter from '../lib/BusyAdapter';
 import Scheduler from '../lib/Scheduler';
@@ -132,8 +133,11 @@ class Bookie extends Component {
 
   onPickerDateRangeEvent(isStartNotEnd, eventName, value) {
     let diff = {};
-    if ('click' === eventName)
-      diff = { pickingStartNotEnd: isStartNotEnd, isFocused: false };
+    if ('click' === eventName) {
+      // we won't go picking range end if start datetime is not picked
+      if (isStartNotEnd || this.state.startVal)
+        diff = { pickingStartNotEnd: isStartNotEnd, isFocused: false };
+    }
     else if ('blur' === eventName)
       diff = { isFocused: false, rangeEndValEntered: value };
     this.negotiateStateDiff(diff);
@@ -143,7 +147,7 @@ class Bookie extends Component {
     const {
       forbidDayBack, forbidHourBack, forbidDayForward, forbidHourForward,
       daysFrame, hoursFrame, qMinutesFrame,
-      pickingStartNotEnd, isFocused, startValStr, endValStr
+      pickingStartNotEnd, isFocused, startValStr, endValStr, startVal, endVal
     } = this.state;
 
     return <div className="bookie-container">
@@ -171,9 +175,29 @@ class Bookie extends Component {
       <PickerDateRange {...{ pickingStartNotEnd, isFocused, startValStr, endValStr }}
         onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
         />
+
+      <div className="text-center">
+        <Button
+          disabled={!(startVal && endVal && startVal !== endVal)}
+          onClick={() => { this.createBooking(true); } }>
+          Book
+        </Button>
+      </div>
     </div>;
   }
+
+  createBooking(settingDelay = true) {
+    const { startVal, endVal } = this.state;
+    if (startVal && (endVal || !settingDelay)) {
+      const bookingArgs = Scheduler.getBookingArgs(startVal, endVal, settingDelay);
+      console.log(bookingArgs);
+      BusyAdapter.createBookingPromise(bookingArgs)
+        .then(response => { console.log('creating booking: ', response); })
+        .catch(ex => { console.log('failed to create booking, ', ex) });
+    }
+  }
 }
+
 
 Bookie.propTypes = {
   onSetLoading: PropTypes.func
