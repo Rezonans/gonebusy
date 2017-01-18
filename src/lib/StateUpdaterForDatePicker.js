@@ -210,9 +210,12 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     const { pickingStartNotEnd, dayPicked, hourPicked, minutesIdxPicked } = s;
 
     const pickedVal = Scheduler.getRangeEndValue(dayPicked, hourPicked, minutesIdxPicked);
-    if (pickingStartNotEnd)
+    if (pickingStartNotEnd) {
       startVal = pickedVal;
-    else
+      // cleanup picked range end value if range start gets undefined
+      if (!startVal)
+        endVal = undefined;
+    } else
       endVal = pickedVal;
 
     const defaultEndText = (startNotEnd => (`choose ${startNotEnd ? 'start' : 'end'}`));
