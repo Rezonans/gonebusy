@@ -78,9 +78,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     const { minDayStr, maxDayStr } = this.getMinMaxDateTimes();
 
     if (dayPicked) {
-      if (Scheduler.isAfter(dayPicked, 0, minDayStr))
+      if (Scheduler.isAfterHour(dayPicked, 0, minDayStr))
         dayPicked = minDayStr;
-      if (maxDayStr && Scheduler.isAfter(maxDayStr, 0, dayPicked))
+      if (maxDayStr && Scheduler.isAfterHour(maxDayStr, 0, dayPicked))
         dayPicked = maxDayStr;
     }
 
@@ -99,9 +99,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     daysFrame.forEach((item) => {
       item.current = (item.val === dayPicked);
       if (
-        (maxDayStr && Scheduler.isAfter(maxDayStr, 0, item.val))
+        (maxDayStr && Scheduler.isAfterHour(maxDayStr, 0, item.val))
         ||
-        Scheduler.isAfter(item.val, 0, minDayStr)
+        Scheduler.isAfterHour(item.val, 0, minDayStr)
       )
         item.disabled = true;
     });
@@ -121,7 +121,7 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     const { minDayStr, minHour, maxDayStr, maxHour } = this.getMinMaxDateTimes();
 
     const firstPresentHour = dayPickedData.presentHours.find(
-      hour => (!Scheduler.isAfter(dayPicked, hour, scopeMin))
+      hour => (!Scheduler.isAfterHour(dayPicked, hour, scopeMin))
     );
 
     if (minDayStr === dayPicked) {
@@ -157,8 +157,8 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     // disable what's missing
     hoursFrame.forEach((item) => {
       item.disabled =
-        (scopeMax && Scheduler.isAfter(scopeMax, -item.hour, item.day)) ||
-        Scheduler.isAfter(item.day, item.hour, scopeMin) ||
+        (scopeMax && Scheduler.isAfterHour(scopeMax, -item.hour, item.day)) ||
+        Scheduler.isAfterHour(item.day, item.hour, scopeMin) ||
         !this.getDataForDate(item.day).presentSlots[item.hour];
     });
 
@@ -185,23 +185,37 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     const qMinutesInt = [0, 15, 30, 45];
 
     const s = this.state();
-    const { dayPicked, hourPicked } = s;
+    const { dayPicked, hourPicked, scopeMin, scopeMax } = s;
     let { minutesIdxPicked } = s;
 
     const qMinuteList = this.getDataForDate(dayPicked).presentSlots[hourPicked] || [];
 
-    if (undefined === minutesIdxPicked && qMinuteList.length)
-      minutesIdxPicked = qMinutesInt.indexOf(qMinuteList[0]);
+    const qMinutesFrame = qMinutesInt.map((item, idx) => {
+      let disabled = true;
+      if (~qMinuteList.indexOf(item)) {
+        if (Scheduler.isAfterMin(scopeMin, -hourPicked, -item, dayPicked)
+          && (!scopeMax || Scheduler.isAfterMin(dayPicked, hourPicked, item, scopeMax))
+        )
+          disabled = false;
+      }
+      return {
+        title: qMinutesStr[idx],
+        disabled
+      };
+    });
+
+    if (undefined === minutesIdxPicked && qMinuteList.length) {
+      const presentIdx = qMinutesFrame.findIndex(x => !x.disabled);
+      if (~presentIdx)
+        minutesIdxPicked = presentIdx;
+    }
     else if (!qMinuteList.length)
       minutesIdxPicked = undefined;
-    this.add({
-      minutesIdxPicked,
-      qMinutesFrame: qMinutesInt.map((item, idx) => ({
-        title: qMinutesStr[idx],
-        disabled: !~qMinuteList.indexOf(item),
-        current: idx === minutesIdxPicked
-      }))
-    });
+
+    if (undefined !== minutesIdxPicked)
+      (qMinutesFrame.find((el, idx) => idx === minutesIdxPicked) || {}).current = true;
+
+    this.add({ minutesIdxPicked, qMinutesFrame });
   }
 
   updateRange() {
@@ -231,8 +245,7 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
       // necessary to cleanup
       ...['rangeEndValEntered'],
       // the list of synthetic parameters we use
-      ...['daysFrameChanged', 'hoursFrameChanged',
-        'scopeMin', 'scopeMax', 'minDayStr', 'minHour', 'maxDayStr', 'maxHour']
+      ...['daysFrameChanged', 'hoursFrameChanged', 'scopeMin', 'scopeMax']
     ].forEach((key) => { delete p[key]; });
     this.add({});
   }
