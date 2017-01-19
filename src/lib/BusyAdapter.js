@@ -36,8 +36,11 @@ class BusyWrapper {
     });
   }
 
-  static getBookingsPromise() {
-    return BookingsController.getBookingsAsync({ authorization });
+  static getBookingsPromise(args) {
+    return BookingsController.getBookingsAsync(Object.assign(
+      { authorization, states: 'awaiting_review' },
+      args
+    ));
   }
 
   static createBookingPromise({ date, time, duration }) {

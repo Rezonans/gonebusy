@@ -197,13 +197,21 @@ class Bookie extends Component {
       BusyAdapter.createBookingPromise(bookingArgs)
         .then(response => {
           console.log('creating booking: ', response);
-          this.negotiateStateDiff({ requestDaysToFetch: [bookingArgs.date] });
+          this.negotiateStateDiff({
+            pickingStartNotEnd: true,
+            // startVal: bookingArgs.date, // end val; evaluate- it-first
+            startVal: undefined,
+            endVal: undefined,
+            dayPicked: undefined,
+            hourPicked: undefined,
+            minutesIdxPicked: undefined,
+            requestDaysToFetch: [bookingArgs.date]
+          });
         })
         .catch(ex => { console.log('failed to create booking, ', ex) });
     }
   }
 }
-
 
 Bookie.propTypes = {
   onSetLoading: PropTypes.func
