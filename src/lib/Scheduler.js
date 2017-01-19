@@ -137,16 +137,30 @@ class Scheduler {
     );
     let result = false;
     if (mVal.isValid()) {
-      const dayPicked = formatDayToString(mVal);
-      const hourPicked = mVal.hour();
-      const minutesIdxPicked = Math.trunc(mVal.minutes() / 15);
-      result = { dayPicked, hourPicked, minutesIdxPicked };
+      const day = formatDayToString(mVal);
+      const hour = mVal.hour();
+      const qMinIdx = Math.trunc(mVal.minutes() / 15);
+      result = { day, hour, qMinIdx };
     }
     return result;
   }
 
+  static parseEnteredDateAsArray(strValue) {
+    const { day, hour, qMinIdx } = this.parseEnteredDate(strValue);
+    return [day, hour, qMinIdx];
+  }
+
+  static parseEnteredDatePicked(strValue) {
+    const r = this.parseEnteredDate(strValue);
+    return r ? {
+      dayPicked: r.day,
+      hourPicked: r.hour,
+      minutesIdxPicked: r.qMinIdx
+    } : false;
+  }
+
   static parseEnteredDateOrUndefined(value) {
-    return Scheduler.parseEnteredDate(value) || {
+    return Scheduler.parseEnteredDatePicked(value) || {
       dayPicked: undefined,
       hourPicked: undefined,
       minutesIdxPicked: undefined

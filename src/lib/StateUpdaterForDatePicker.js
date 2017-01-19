@@ -43,7 +43,7 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     const { rangeEndValEntered } = s;
 
     if (undefined !== rangeEndValEntered) {
-      const parsedValue = Scheduler.parseEnteredDate(rangeEndValEntered);
+      const parsedValue = Scheduler.parseEnteredDatePicked(rangeEndValEntered);
       if (parsedValue)
         this.add(parsedValue);
     }
@@ -243,6 +243,28 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     this.add({ startValStr, endValStr, startVal, endVal });
   }
 
+  setBookingAllowed() {
+    const { startVal, endVal } = this.virtualState();
+    let bookingAllowed = false;
+    if (startVal && endVal && startVal !== endVal) {
+      let [day, hour, qMinIdx] = Scheduler.parseEnteredDateAsArray(startVal);
+      let gapFound = false;
+      do {
+        const nextMomentStr = Scheduler.getRangeEndValue(day, hour, qMinIdx + 1);
+        [day, hour, qMinIdx] = Scheduler.parseEnteredDateAsArray(nextMomentStr);
+
+        const dayData = this.getDataForDate(Scheduler.getDayStr(nextMomentStr));
+        gapFound = !dayData ||
+          !dayData.presentSlots[hour] ||
+          !~dayData.presentSlots[hour].indexOf(qMinIdx * 15);
+        if (gapFound)
+          console.log('gap found', nextMomentStr);
+      } while (!gapFound && Scheduler.isAfterMin(day, hour, qMinIdx * 15, endVal));
+      bookingAllowed = !gapFound;
+    }
+    this.add({ bookingAllowed });
+  }
+
   requestDaysFetching() {
     this.addDaysToFetch(this.state().requestDaysToFetch || []);
   }
@@ -267,6 +289,7 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     this.prepareHoursFrame();
     this.setMinutesFrameAndIdx();
     this.updateRange();
+    this.setBookingAllowed();
     this.requestDaysFetching();
     this.cleanupDiff();
   }
