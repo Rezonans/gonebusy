@@ -113,9 +113,14 @@ class Scheduler {
     return result;
   }
 
-  static isAfter(date, hours, base) {
+  static isAfterHour(date, hours, base) {
     const momentToCompare = moment(date).add(hours, 'hours');
     return moment(base).isAfter(momentToCompare, 'hour');
+  }
+
+  static isAfterMin(date, hours, minutes, base) {
+    const momentToCompare = moment(date).add(hours, 'hours').add(minutes, 'minutes');
+    return moment(base).isAfter(momentToCompare, 'minute');
   }
 
   static previousIsAfter(date, hours, dayNotHour, base) {
@@ -154,6 +159,20 @@ class Scheduler {
 
   static getHour(dateTimeStr) {
     return moment(dateTimeStr).hour();
+  }
+
+  static getBookingArgs(startVal, endVal, settingDelay) {
+    const mStart = moment(startVal);
+    // '2017-01-13'
+    const date = formatDayToString(mStart);
+    // '13:15'
+    const time = mStart.format('HH:mm');
+    // length in minutes
+    const duration = settingDelay ?
+      moment.duration(moment(endVal).diff(mStart)).asMinutes()
+      :
+      undefined;
+    return { date, time, duration };
   }
 }
 
