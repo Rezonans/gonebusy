@@ -150,7 +150,8 @@ class Bookie extends Component {
       forbidDayBack, forbidHourBack, forbidDayForward, forbidHourForward,
       daysFrame, hoursFrame, qMinutesFrame,
       pickingStartNotEnd, isFocused, startValStr, endValStr,
-      bookingAllowed
+      bookingAllowed,
+      lastBooking
     } = this.state;
 
     return <div className="bookie-container">
@@ -186,6 +187,23 @@ class Bookie extends Component {
           Book
         </Button>
       </div>
+
+      {
+        lastBooking && <div className="text-center">
+          <div className="well" key={lastBooking.id}>
+            <h3>last booking</h3>
+            <p>{lastBooking.startDate.toString()}</p>
+            <p>{lastBooking.startTime}</p>
+            <p>{lastBooking.totalMinutes}</p>
+            <Button onClick={() => {
+              BusyAdapter.cancelBookingPromise(lastBooking.id).then(response => { console.log('cancelling booking: ', lastBooking.id, response); });
+            } }>
+              drop
+            </Button>
+          </div>
+        </div>
+      }
+
     </div>;
   }
 
@@ -197,13 +215,24 @@ class Bookie extends Component {
       BusyAdapter.createBookingPromise(bookingArgs)
         .then(response => {
           console.log('creating booking: ', response);
-          this.negotiateStateDiff({ requestDaysToFetch: [bookingArgs.date] });
+          const { id, timeWindow: { startDate, startTime, totalMinutes } } = response.booking || {};
+
+          this.negotiateStateDiff({
+            pickingStartNotEnd: true,
+            // startVal: bookingArgs.date, // end val; evaluate- it-first
+            startVal: undefined,
+            endVal: undefined,
+            dayPicked: undefined,
+            hourPicked: undefined,
+            minutesIdxPicked: undefined,
+            requestDaysToFetch: [bookingArgs.date],
+            lastBooking: (response.booking ? { id, startDate, startTime, totalMinutes } : undefined),
+          });
         })
         .catch(ex => { console.log('failed to create booking, ', ex) });
     }
   }
 }
-
 
 Bookie.propTypes = {
   onSetLoading: PropTypes.func
