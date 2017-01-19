@@ -17,6 +17,7 @@ class Bookie extends Component {
       loading: false,
       initialized: false,
 
+      // date time picker
       dayData: {},
       daysToFetch: [],
 
@@ -35,13 +36,16 @@ class Bookie extends Component {
       forbidDayForward: false,
       forbidHourForward: false,
 
-      startVal: undefined,
-      startValStr: undefined,
-
+      // range
       pickingStartNotEnd: true,
       isFocused: false,
+      startVal: undefined,
+      startValStr: undefined,
       endVal: undefined,
       endValStr: undefined,
+
+      // booking
+      bookingAllowed: false
     };
   }
 
@@ -145,7 +149,8 @@ class Bookie extends Component {
     const {
       forbidDayBack, forbidHourBack, forbidDayForward, forbidHourForward,
       daysFrame, hoursFrame, qMinutesFrame,
-      pickingStartNotEnd, isFocused, startValStr, endValStr, startVal, endVal
+      pickingStartNotEnd, isFocused, startValStr, endValStr,
+      bookingAllowed
     } = this.state;
 
     return <div className="bookie-container">
@@ -176,12 +181,12 @@ class Bookie extends Component {
 
       <div className="text-center">
         <Button
-          disabled={!(startVal && endVal && startVal !== endVal)}
+          disabled={!bookingAllowed}
           onClick={() => { this.createBooking(true); } }>
           Book
         </Button>
       </div>
-  </div>;
+    </div>;
   }
 
   createBooking(settingDelay = true) {
