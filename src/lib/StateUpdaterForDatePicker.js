@@ -238,8 +238,9 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
 
     const defaultEndText = (startNotEnd => (`choose ${startNotEnd ? 'start' : 'end'}`));
     startValStr = startVal ? Scheduler.getRangeEndFormatted(startVal) : defaultEndText(true);
-    endValStr = endVal ? Scheduler.getRangeEndFormatted(endVal) : defaultEndText(false);
-
+    endValStr = endVal ?
+      Scheduler.getRangeEndFormatted(Scheduler.getNextQMinString(endVal)) :
+      defaultEndText(false);
     this.add({ startValStr, endValStr, startVal, endVal });
   }
 
