@@ -87,6 +87,10 @@ class Scheduler {
     return formatDayToString(moment.utc(date).add(1, 'day'));
   }
 
+  static getNextQMinString(date) {
+    return moment(date).add(15, 'minutes').format();
+  }
+
   static getStructuredIncrement(date, hour, unit, increment) {
     const m = moment.utc(date).add(hour, 'hours').add(increment, unit);
     return { day: formatDayToString(m), hour: m.hours() };

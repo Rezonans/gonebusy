@@ -208,7 +208,11 @@ class Bookie extends Component {
   }
 
   createBooking(settingDelay = true) {
-    const { startVal, endVal } = this.state;
+    const s = this.state;
+    const startVal = s.startVal;
+    let endVal = s.endVal;
+    if (endVal)
+      endVal = Scheduler.getNextQMinString(endVal);
     if (startVal && (endVal || !settingDelay)) {
       const [bookingArgs, requestDaysToFetch] = Scheduler.composeBookingData(startVal, endVal, settingDelay);
       console.log(bookingArgs);
