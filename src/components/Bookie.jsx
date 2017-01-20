@@ -210,7 +210,7 @@ class Bookie extends Component {
   createBooking(settingDelay = true) {
     const { startVal, endVal } = this.state;
     if (startVal && (endVal || !settingDelay)) {
-      const bookingArgs = Scheduler.getBookingArgs(startVal, endVal, settingDelay);
+      const [bookingArgs, requestDaysToFetch] = Scheduler.composeBookingData(startVal, endVal, settingDelay);
       console.log(bookingArgs);
       BusyAdapter.createBookingPromise(bookingArgs)
         .then(response => {
@@ -219,13 +219,12 @@ class Bookie extends Component {
 
           this.negotiateStateDiff({
             pickingStartNotEnd: true,
-            // startVal: bookingArgs.date, // end val; evaluate- it-first
-            startVal: undefined,
+            startVal: endVal,
             endVal: undefined,
             dayPicked: undefined,
             hourPicked: undefined,
             minutesIdxPicked: undefined,
-            requestDaysToFetch: [bookingArgs.date],
+            requestDaysToFetch,
             lastBooking: (response.booking ? { id, startDate, startTime, totalMinutes } : undefined),
           });
         })

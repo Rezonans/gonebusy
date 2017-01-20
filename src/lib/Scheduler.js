@@ -175,18 +175,26 @@ class Scheduler {
     return moment(dateTimeStr).hour();
   }
 
-  static getBookingArgs(startVal, endVal, settingDelay) {
+  static composeBookingData(startVal, endVal, settingDelay) {
     const mStart = moment(startVal);
+    const mEnd = moment(endVal);
     // '2017-01-13'
     const date = formatDayToString(mStart);
     // '13:15'
     const time = mStart.format('HH:mm');
     // length in minutes
     const duration = settingDelay ?
-      moment.duration(moment(endVal).diff(mStart)).asMinutes()
+      moment.duration(mEnd.diff(mStart)).asMinutes()
       :
       undefined;
-    return { date, time, duration };
+
+    const daysToFetch = [formatDayToString(mStart)];
+    if (endVal) {
+      while (mStart.add(1, 'day').isSameOrBefore(mEnd, 'day'))
+        daysToFetch.push(formatDayToString(mStart));
+    }
+
+    return [{ date, time, duration }, daysToFetch];
   }
 }
 
