@@ -73,20 +73,29 @@ class Bookie extends Component {
         const dayToFetch = daysToFetch[0];
 
         this.setParentLoading(true);
-        this.setState({ loading: true }, () => {
+
+        // this.setState({ loading: true }, () => {
+        //   BusyAdapter.getServiceAvailableSlotsByIdPromise(dayToFetch)
+        //     .then((slotData) => {
+        //       let { daysToFetch, dayData } = this.state;
+        //       const parsedData = Scheduler.getDayDataFromSlots(slotData);
+        //       Object.assign(dayData, parsedData);
+        //       daysToFetch = daysToFetch.filter(val => !dayData[val] && dayToFetch !== val);
+        //       this.negotiateStateDiff({ dayData, daysToFetch, loading: false }, true);
+        //     })
+        //     .catch((ex) => {
+        //       console.log('exception caught!', ex);
+        //       this.negotiateStateDiff({ loading: false }, true);
+        //     });
+        // });
+
+        const caller = () => {
           BusyAdapter.getServiceAvailableSlotsByIdPromise(dayToFetch)
-            .then((slotData) => {
-              let { daysToFetch, dayData } = this.state;
-              const parsedData = Scheduler.getDayDataFromSlots(slotData);
-              Object.assign(dayData, parsedData);
-              daysToFetch = daysToFetch.filter(val => !dayData[val] && dayToFetch !== val);
-              this.negotiateStateDiff({ dayData, daysToFetch, loading: false }, true);
-            })
-            .catch((ex) => {
-              console.log('exception caught!', ex);
-              this.negotiateStateDiff({ loading: false }, true);
-            });
-        });
+            .then((slotData) => { console.log(slotData); })
+            .catch((ex) => { console.log('exception caught!', ex); });
+        };
+
+        console.log(caller);
       }
     }
   }

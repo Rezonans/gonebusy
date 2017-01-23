@@ -8,7 +8,8 @@ const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
 
 const config = {
-  baseUri: 'http://sandbox.gonebusy.com/api/v1'
+  // baseUri: 'http://sandbox.gonebusy.com/api/v1'
+  baseUri: 'http://localhost:1337/api'
 };
 
 // @to-do log warning if no env variables provided
