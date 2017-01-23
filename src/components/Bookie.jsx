@@ -7,8 +7,8 @@ import StateUpdaterForDatePicker from '../lib/StateUpdaterForDatePicker';
 
 import './Bookie.css';
 
-import PickerItemList from './PickerItemList.jsx';
-import PickerDateRange from './PickerDateRange.jsx';
+import PickerItemList from './PickerItemList';
+import PickerDateRange from './PickerDateRange';
 
 class Bookie extends Component {
   constructor() {
@@ -49,6 +49,21 @@ class Bookie extends Component {
     };
   }
 
+  componentWillMount() {
+    this.negotiateStateDiff({ initialized: true });
+  }
+
+  onPickerDateRangeEvent(isStartNotEnd, eventName, value) {
+    let diff = {};
+    if ('click' === eventName) {
+      // we won't go picking range end if start datetime is not picked
+      if (isStartNotEnd || this.state.startVal)
+        diff = { pickingStartNotEnd: isStartNotEnd, isFocused: false };
+    } else if ('blur' === eventName)
+      diff = { isFocused: false, rangeEndValEntered: value };
+    this.negotiateStateDiff(diff);
+  }
+
   setParentLoading(loading) {
     if (this.props.onSetLoading)
       this.props.onSetLoading(loading);
@@ -76,11 +91,15 @@ class Bookie extends Component {
         this.setState({ loading: true }, () => {
           BusyAdapter.getServiceAvailableSlotsByIdPromise(dayToFetch)
             .then((slotData) => {
-              let { daysToFetch, dayData } = this.state;
+              const dayData = this.state.dayData;
               const parsedData = Scheduler.getDayDataFromSlots(slotData);
               Object.assign(dayData, parsedData);
-              daysToFetch = daysToFetch.filter(val => !dayData[val] && dayToFetch !== val);
-              this.negotiateStateDiff({ dayData, daysToFetch, loading: false }, true);
+              const daysToFetchLeft = daysToFetch
+                .filter(val => !dayData[val] && dayToFetch !== val);
+              this.negotiateStateDiff(
+                { dayData, daysToFetch: daysToFetchLeft, loading: false },
+                true
+              );
             })
             .catch((ex) => {
               console.log('exception caught!', ex);
@@ -91,10 +110,6 @@ class Bookie extends Component {
     }
   }
 
-  componentWillMount() {
-    this.negotiateStateDiff({ initialized: true });
-  }
-
   clickQuarter(index) {
     this.negotiateStateDiff({ minutesIdxPicked: index });
   }
@@ -103,16 +118,25 @@ class Bookie extends Component {
     const s = this.state;
 
     const dateShifter = (hourIncrement) => {
-      const diff = Scheduler.getStructuredIncrement(s.dayPicked, s.hoursFrameStart, 'hours', hourIncrement);
+      const diff = Scheduler.getStructuredIncrement(
+        s.dayPicked,
+        s.hoursFrameStart,
+        'hours',
+        hourIncrement
+      );
       return { dayPicked: diff.day, hoursFrameStart: diff.hour };
-    }
+    };
 
-    if ('rev' === item.val) {
+    if ('rev' === item.val)
       this.negotiateStateDiff(dateShifter(-2));
-    } else if ('fwd' === item.val) {
+    else if ('fwd' === item.val)
       this.negotiateStateDiff(dateShifter(2));
-    } else {
-      this.negotiateStateDiff({ dayPicked: item.day, hourPicked: item.hour, minutesIdxPicked: undefined });
+    else {
+      this.negotiateStateDiff({
+        dayPicked: item.day,
+        hourPicked: item.hour,
+        minutesIdxPicked: undefined
+      });
     }
   }
 
@@ -122,27 +146,47 @@ class Bookie extends Component {
     const dayShifter = (hourDiff) => {
       const increment = Scheduler.getStructuredIncrement(s.daysFrameStart, 0, 'days', hourDiff);
       return { daysFrameStart: increment.day };
-    }
+    };
 
-    if ('rev' === item.val) {
+    if ('rev' === item.val)
       this.negotiateStateDiff(dayShifter(-1));
-    } else if ('fwd' === item.val) {
+    else if ('fwd' === item.val)
       this.negotiateStateDiff(dayShifter(1));
-    } else {
-      this.negotiateStateDiff({ dayPicked: item.val, hourPicked: undefined, minutesIdxPicked: undefined });
+    else {
+      this.negotiateStateDiff({
+        dayPicked: item.val,
+        hourPicked: undefined,
+        minutesIdxPicked: undefined
+      });
     }
   }
 
-  onPickerDateRangeEvent(isStartNotEnd, eventName, value) {
-    let diff = {};
-    if ('click' === eventName) {
-      // we won't go picking range end if start datetime is not picked
-      if (isStartNotEnd || this.state.startVal)
-        diff = { pickingStartNotEnd: isStartNotEnd, isFocused: false };
+  createBooking(settingDelay = true) {
+    const { startVal, endVal } = this.state;
+    if (startVal && (endVal || !settingDelay)) {
+      const [bookingArgs, requestDaysToFetch] =
+        Scheduler.composeBookingData(startVal, endVal, settingDelay);
+      console.log(bookingArgs);
+      BusyAdapter.createBookingPromise(bookingArgs)
+        .then((response) => {
+          console.log('creating booking: ', response);
+          const { id, timeWindow: { startDate, startTime, totalMinutes } } = response.booking || {};
+
+          this.negotiateStateDiff({
+            pickingStartNotEnd: true,
+            startVal: endVal,
+            endVal: undefined,
+            dayPicked: undefined,
+            hourPicked: undefined,
+            minutesIdxPicked: undefined,
+            requestDaysToFetch,
+            lastBooking: (response.booking ?
+              { id, startDate, startTime, totalMinutes } :
+              undefined),
+          });
+        })
+        .catch((ex) => { console.log('failed to create booking, ', ex); });
     }
-    else if ('blur' === eventName)
-      diff = { isFocused: false, rangeEndValEntered: value };
-    this.negotiateStateDiff(diff);
   }
 
   render() {
@@ -154,33 +198,40 @@ class Bookie extends Component {
       lastBooking
     } = this.state;
 
-    return <div className="bookie-container">
-      <PickerItemList className="pick-day"
+    return (<div className="bookie-container">
+      <PickerItemList
+        className="pick-day"
         items={daysFrame}
-        onClick={(item, index) => { this.clickDay(item); } }
+        onClick={(item) => { this.clickDay(item); } }
         wrapWithArrows
         forbidBack={forbidDayBack}
         forbidForward={forbidDayForward}
         />
 
-      <PickerItemList className="pick-minutes"
+      <PickerItemList
+        className="pick-minutes"
         items={qMinutesFrame}
         onClick={(item, index) => { this.clickQuarter(index); } }
         />
 
-      <PickerItemList className="pick-hour"
+      <PickerItemList
+        className="pick-hour"
         items={hoursFrame}
-        onClick={(item, index) => { this.clickHour(item); } }
+        onClick={(item) => { this.clickHour(item); } }
         wrapWithArrows
         forbidBack={forbidHourBack}
         forbidForward={forbidHourForward}
         />
 
-      <PickerDateRange {...{ pickingStartNotEnd, isFocused, startValStr, endValStr }}
-        onEvent={(isStart, eventName, value) => { this.onPickerDateRangeEvent(isStart, eventName, value) } }
-        />
+      <PickerDateRange
+        {...{ pickingStartNotEnd, isFocused, startValStr, endValStr }}
+        onEvent={
+          (isStart, eventName, value) => {
+            this.onPickerDateRangeEvent(isStart, eventName, value);
+          } } />
 
-      <div className="text-center">
+      <div
+        className="text-center">
         <Button
           disabled={!bookingAllowed}
           onClick={() => { this.createBooking(true); } }>
@@ -195,46 +246,30 @@ class Bookie extends Component {
             <p>{lastBooking.startDate.toString()}</p>
             <p>{lastBooking.startTime}</p>
             <p>{lastBooking.totalMinutes}</p>
-            <Button onClick={() => {
-              BusyAdapter.cancelBookingPromise(lastBooking.id).then(response => { console.log('cancelling booking: ', lastBooking.id, response); });
-            } }>
+            <Button
+              onClick={() => {
+                BusyAdapter
+                  .cancelBookingPromise(lastBooking.id)
+                  .then((response) => {
+                    console.log('cancelling booking: ', lastBooking.id, response);
+                  });
+              } }>
               drop
             </Button>
           </div>
         </div>
       }
 
-    </div>;
-  }
-
-  createBooking(settingDelay = true) {
-    const { startVal, endVal } = this.state;
-    if (startVal && (endVal || !settingDelay)) {
-      const [bookingArgs, requestDaysToFetch] = Scheduler.composeBookingData(startVal, endVal, settingDelay);
-      console.log(bookingArgs);
-      BusyAdapter.createBookingPromise(bookingArgs)
-        .then(response => {
-          console.log('creating booking: ', response);
-          const { id, timeWindow: { startDate, startTime, totalMinutes } } = response.booking || {};
-
-          this.negotiateStateDiff({
-            pickingStartNotEnd: true,
-            startVal: endVal,
-            endVal: undefined,
-            dayPicked: undefined,
-            hourPicked: undefined,
-            minutesIdxPicked: undefined,
-            requestDaysToFetch,
-            lastBooking: (response.booking ? { id, startDate, startTime, totalMinutes } : undefined),
-          });
-        })
-        .catch(ex => { console.log('failed to create booking, ', ex) });
-    }
+    </div>);
   }
 }
 
 Bookie.propTypes = {
   onSetLoading: PropTypes.func
+};
+
+Bookie.defaultProps = {
+  onSetLoading: undefined
 };
 
 export default Bookie;

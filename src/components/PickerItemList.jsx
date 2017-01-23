@@ -1,37 +1,48 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import classNames from 'classnames';
 
-class PickerItemList extends Component {
+class PickerItemList extends PureComponent {
   render() {
-    const p = this.props;
-    const { wrapWithArrows, forbidBack, forbidForward, className, onClick, } = p;
+    const { wrapWithArrows, forbidBack, forbidForward, className, onClick, items } = this.props;
 
-    let items = (p.items || []);
-    if (wrapWithArrows)
-      items = [
+    let itemsProcessed = (items || []);
+    if (wrapWithArrows) {
+      itemsProcessed = [
         { title: '<<', val: 'rev', disabled: forbidBack },
-        ...items,
+        ...itemsProcessed,
         { title: '>>', val: 'fwd', disabled: forbidForward },
       ];
+    }
 
-    return <ul className={className}>
-      {items.map((item, index) => {
-        const {current, disabled} = item;
-        const onItemClick = (onClick && !item.disabled) ? (() => { onClick(item, index); }) : undefined;
-        return <li key={index} className={classNames({ current, disabled })} onClick={onItemClick}>
+    return (<ul className={className}>
+      {itemsProcessed.map((item, index) => {
+        const { current, disabled } = item;
+        const onItemClick = (onClick && !item.disabled) ?
+          (() => { onClick(item, index); }) :
+          undefined;
+        return (<li key={index} className={classNames({ current, disabled })} onClick={onItemClick}>
           <a>{item.title}</a>
-        </li>;
+        </li>);
       })}
-    </ul>;
+    </ul>);
   }
 }
 
+/* eslint react/forbid-prop-types: 0 */
 PickerItemList.propTypes = {
-  items: PropTypes.array,
-  onClick: PropTypes.func,
+  items: PropTypes.array.isRequired,
+  onClick: PropTypes.func.isRequired,
+  className: PropTypes.string,
   wrapWithArrows: PropTypes.bool,
   forbidBack: PropTypes.bool,
-  forbidForward: PropTypes.bool
+  forbidForward: PropTypes.bool,
+};
+
+PickerItemList.defaultProps = {
+  className: undefined,
+  wrapWithArrows: false,
+  forbidBack: false,
+  forbidForward: false,
 };
 
 export default PickerItemList;
