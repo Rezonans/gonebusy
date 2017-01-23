@@ -1,9 +1,9 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import classNames from 'classnames';
 
-class PickerDateRange extends Component {
+class PickerDateRange extends PureComponent {
 
-  getItem(val, picking, isFocused, isStartNotEnd, onEvent) {
+  static getItem(val, picking, isFocused, isStartNotEnd, onEvent) {
     const spanClassInfo = {
       pick: true,
       end: !isStartNotEnd,
@@ -13,39 +13,44 @@ class PickerDateRange extends Component {
 
     let result = null;
 
-    if (isFocused && picking)
-      result = <input
-        type='text'
+    if (isFocused && picking) {
+      result = (<input
+        type={'text'}
         defaultValue={val}
         autoFocus
-        onBlur={event => { onEvent(isStartNotEnd, 'blur', event.target.value); } }
-        />;
-    else
-      result = <span
+        onBlur={(event) => { onEvent(isStartNotEnd, 'blur', event.target.value); } }
+        />);
+    } else {
+      result = (<span
         className={classNames(spanClassInfo)}
         onClick={() => { onEvent(isStartNotEnd, 'click'); } }>
         {val}
-      </span>;
+      </span>);
+    }
 
     return result;
   }
 
   render() {
     const { pickingStartNotEnd, isFocused, startValStr, endValStr, onEvent } = this.props;
-    return <div className="range">
-      {this.getItem(startValStr, pickingStartNotEnd, isFocused, true, onEvent)}
+    return (<div className="range">
+      {PickerDateRange.getItem(startValStr, pickingStartNotEnd, isFocused, true, onEvent)}
       <span>&nbsp;&mdash;&nbsp;</span>
-      {this.getItem(endValStr, !pickingStartNotEnd, isFocused, false, onEvent)}
-    </div>;
+      {PickerDateRange.getItem(endValStr, !pickingStartNotEnd, isFocused, false, onEvent)}
+    </div>);
   }
 }
 
 PickerDateRange.propTypes = {
-  pickingStartNotEnd: PropTypes.bool,
+  pickingStartNotEnd: PropTypes.bool.isRequired,
   isFocused: PropTypes.bool,
-  startValStr: PropTypes.string,
-  endValStr: PropTypes.string,
-  onEvent: PropTypes.func,
+  startValStr: PropTypes.string.isRequired,
+  endValStr: PropTypes.string.isRequired,
+  onEvent: PropTypes.func.isRequired,
+};
+
+PickerDateRange.defaultProps = {
+  isFocused: false,
 };
 
 export default PickerDateRange;

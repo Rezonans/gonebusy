@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 import { Breadcrumb, Image } from 'react-bootstrap';
 
+import ProgressBar from 'react-progress-bar-plus';
+import 'react-progress-bar-plus/lib/progress-bar.css';
+
 import BusyAdapter from '../lib/BusyAdapter';
 import defaults from '../lib/defaults';
 
 import dogWalker from './DogWalker.svg';
 import './App.css';
 
-import Bookie from './Bookie.jsx';
-
-import ProgressBar from 'react-progress-bar-plus';
-import 'react-progress-bar-plus/lib/progress-bar.css';
+import Bookie from './Bookie';
 
 class App extends Component {
   constructor() {
@@ -55,7 +55,7 @@ class App extends Component {
 
               <Image src={dogWalker} responsive thumbnail />
 
-              <Bookie onSetLoading={loading => { this.setLoading(loading); } } />
+              <Bookie onSetLoading={(loading) => { this.setLoading(loading); } } />
             </div>
           </div>
         </div>
