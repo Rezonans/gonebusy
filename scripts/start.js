@@ -22,6 +22,8 @@ var pathExists = require('path-exists');
 var config = require('../config/webpack.config.dev');
 var paths = require('../config/paths');
 
+const StringDecoder = require('string_decoder').StringDecoder;
+
 var useYarn = pathExists.sync(paths.yarnLockFile);
 var cli = useYarn ? 'yarn' : 'npm';
 var isInteractive = process.stdout.isTTY;
@@ -198,8 +200,18 @@ function addMiddleware(devServer) {
     var hpm = httpProxyMiddleware(path => mayProxy.test(path), {
       target: proxy,
       logLevel: 'silent',
-      onProxyReq: function (proxyReq, req, res) {
+      onProxyReq: (proxyReq, req, res) => {
         proxyReq.setHeader('authorization', token);
+        console.log(`requested: [${req.method}] ${req.url}`);
+        console.log('query:', req.query);
+        console.log('-\n');
+      },
+      onProxyRes: (proxyRes, req, res) => {
+        proxyRes.on('data', (chunk) => {
+          console.log(`response for: [${req.method}] ${req.url}`);
+          console.log((new StringDecoder('utf8')).write(chunk));
+          console.log('-\n');
+        });
       },
       // pathRewrite: {
       //   // '^/api/old-path': '/api/new-path',     // rewrite path 
