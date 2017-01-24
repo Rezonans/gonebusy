@@ -89,7 +89,7 @@ class Bookie extends Component {
 
         this.setParentLoading(true);
         this.setState({ loading: true }, () => {
-          BusyAdapter.getServiceAvailableSlotsByIdPromise(dayToFetch)
+          BusyAdapter.getSlotsAsync(dayToFetch)
             .then((slotData) => {
               const dayData = this.state.dayData;
               const parsedData = Scheduler.getDayDataFromSlots(slotData);
