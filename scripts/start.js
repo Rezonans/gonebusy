@@ -153,7 +153,12 @@ function onProxyError(proxy) {
 function addMiddleware(devServer) {
   // `proxy` lets you to specify a fallback server during development.
   // Every unrecognized request will be forwarded to it.
-  var proxy = require(paths.appPackageJson).proxy;
+  
+  const gonebusy_env = require('../config/gonebusy_env');
+  const proxy = gonebusy_env['middlewareProxyHost'];
+  const token = gonebusy_env['middlewareToken'];
+  const middlewarePath = gonebusy_env['middlewarePath'];
+  
   devServer.use(historyApiFallback({
     // Paths with dots should still use the history fallback.
     // See https://github.com/facebookincubator/create-react-app/issues/387.
@@ -183,27 +188,31 @@ function addMiddleware(devServer) {
     // - /*.hot-update.json (WebpackDevServer uses this too for hot reloading)
     // - /sockjs-node/* (WebpackDevServer uses this for hot reloading)
     // Tip: use https://jex.im/regulex/ to visualize the regex
-    var mayProxy = /^(?!\/(index\.html$|.*\.hot-update\.json$|sockjs-node\/)).*$/;
+    // var mayProxy = /^(?!\/(index\.html$|.*\.hot-update\.json$|sockjs-node\/)).*$/;
+    // var mayProxy = /^\/api.*$/;
 
     // Pass the scope regex both to Express and to the middleware for proxying
     // of both HTTP and WebSockets to work without false positives.
-    var hpm = httpProxyMiddleware(pathname => mayProxy.test(pathname), {
+    // var hpm = httpProxyMiddleware(pathname => mayProxy.test(pathname), {
+    var hpm = httpProxyMiddleware({
       target: proxy,
       logLevel: 'silent',
-      onProxyReq: function(proxyReq, req, res) {
-        // Browers may send Origin headers even with same-origin
-        // requests. To prevent CORS issues, we have to change
-        // the Origin to match the target URL.
-        if (proxyReq.getHeader('origin')) {
-          proxyReq.setHeader('origin', proxy);
-        }
+      onProxyReq: function (proxyReq, req, res) {
+
+        if (proxyReq.getHeader('authorization'))
+          proxyReq.setHeader('authorization', token);
       },
+      // pathRewrite: {
+      //   // '^/api/old-path': '/api/new-path',     // rewrite path 
+      //   // '^/api/remove/path': '/path'           // remove base path 
+      // },
       onError: onProxyError(proxy),
       secure: false,
       changeOrigin: true,
       ws: true
     });
-    devServer.use(mayProxy, hpm);
+    // devServer.use(mayProxy, hpm);
+    devServer.use(middlewarePath, hpm);
 
     // Listen for the websocket 'upgrade' event and upgrade the connection.
     // If this is not done, httpProxyMiddleware will not try to upgrade until
