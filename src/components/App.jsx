@@ -19,8 +19,8 @@ class App extends Component {
       loading: false,
       serviceName: defaults.defaultServiceName
     };
-    BusyAdapter.getServiceNamePromise().then((response) => {
-      this.setState({ serviceName: response.services[0].name });
+    BusyAdapter.getServiceInfoAsync().then((info) => {
+      this.setState({ serviceName: info.name });
     });
   }
 

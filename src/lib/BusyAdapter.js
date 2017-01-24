@@ -8,31 +8,54 @@ const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
 
 const {
-  service_id,
   clientToken: authorization,
   clientApiEndpoint
 } = gonebusyEnv;
 
 gonebusy.configuration.BASEURI = clientApiEndpoint;
 
-class BusyWrapper {
-  static getServiceNamePromise() {
-    return ServicesController.getServicesAsync({ authorization });
+let serviceInfo;
+
+class BusyAdapter {
+  static getServiceInfoAsync() {
+    return new Promise((resolve) => {
+      if (serviceInfo)
+        resolve(serviceInfo);
+      else {
+        ServicesController
+          .getServicesAsync({ authorization })
+          .then((response) => {
+            if (response.services && response.services.length) {
+              const serviceEntry = response.services[0];
+              serviceInfo = {
+                name: serviceEntry.name,
+                id: serviceEntry.id,
+                max_duration: serviceEntry.max_duration,
+              };
+              resolve(serviceInfo);
+            } else
+              throw new Error('Failed to fetch service info');
+          });
+      }
+    });
   }
 
-  static getServiceAvailableSlotsByIdPromise(date) {
-    return ServicesController.getServiceAvailableSlotsByIdAsync({
-      authorization,
-      id: service_id,
-      startDate: date,
-      endDate: Scheduler.getNextDayString(date)
-    }).then((data) => {
-      const slotData = [];
-      data.service.resources[0].availableSlots.forEach((x) => {
-        slotData.push(...x.slots.split(', '));
+  static getSlotsAsync(date) {
+    return BusyAdapter
+      .getServiceInfoAsync()
+      .then(info => ServicesController.getServiceAvailableSlotsByIdAsync({
+        authorization,
+        id: info.id,
+        startDate: date,
+        endDate: Scheduler.getNextDayString(date)
+      }))
+      .then((data) => {
+        const slotData = [];
+        data.service.resources[0].availableSlots.forEach((x) => {
+          slotData.push(...x.slots.split(', '));
+        });
+        return slotData;
       });
-      return slotData;
-    });
   }
 
   static getBookingsPromise(args) {
@@ -43,18 +66,20 @@ class BusyWrapper {
   }
 
   static createBookingPromise({ date, time, duration }) {
-    const params = {
-      service_id,
-      date,
-      time
-    };
-    if (undefined !== duration)
-      params.duration = duration;
-
-    console.log(params);
-
-    const createBookingBody = new CreateBookingBody(params);
-    return BookingsController.createBookingAsync({ authorization, createBookingBody });
+    return BusyAdapter
+      .getServiceInfoAsync()
+      .then((info) => {
+        const params = {
+          service_id: info.id,
+          date,
+          time
+        };
+        if (undefined !== duration)
+          params.duration = duration;
+        console.log(params);
+        const createBookingBody = new CreateBookingBody(params);
+        return BookingsController.createBookingAsync({ authorization, createBookingBody });
+      });
   }
 
   static cancelBookingPromise(id) {
@@ -62,4 +87,4 @@ class BusyWrapper {
   }
 }
 
-export default BusyWrapper;
+export default BusyAdapter;
