@@ -190,17 +190,16 @@ function addMiddleware(devServer) {
     // Tip: use https://jex.im/regulex/ to visualize the regex
     // var mayProxy = /^(?!\/(index\.html$|.*\.hot-update\.json$|sockjs-node\/)).*$/;
     // var mayProxy = /^\/api.*$/;
+    var mayProxy = new RegExp('^' + middlewarePath + '.*$');
 
     // Pass the scope regex both to Express and to the middleware for proxying
     // of both HTTP and WebSockets to work without false positives.
     // var hpm = httpProxyMiddleware(pathname => mayProxy.test(pathname), {
-    var hpm = httpProxyMiddleware({
+    var hpm = httpProxyMiddleware(path => mayProxy.test(path), {
       target: proxy,
       logLevel: 'silent',
       onProxyReq: function (proxyReq, req, res) {
-
-        if (proxyReq.getHeader('authorization'))
-          proxyReq.setHeader('authorization', token);
+        proxyReq.setHeader('authorization', token);
       },
       // pathRewrite: {
       //   // '^/api/old-path': '/api/new-path',     // rewrite path 
@@ -211,8 +210,8 @@ function addMiddleware(devServer) {
       changeOrigin: true,
       ws: true
     });
-    // devServer.use(mayProxy, hpm);
-    devServer.use(middlewarePath, hpm);
+    devServer.use(mayProxy, hpm);
+    // devServer.use(middlewarePath, hpm);
 
     // Listen for the websocket 'upgrade' event and upgrade the connection.
     // If this is not done, httpProxyMiddleware will not try to upgrade until
