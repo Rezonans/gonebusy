@@ -2,19 +2,22 @@
 // injected into the application via DefinePlugin in Webpack configuration.
 
 var REACT_APP = /^REACT_APP_/i;
+var clientParams = require('./gonebusy_env').client;
 
 function getClientEnvironment(publicUrl) {
+  var envData = Object.assign({}, process.env, clientParams);
+
   var processEnv = Object
-    .keys(process.env)
+    .keys(envData)
     .filter(key => REACT_APP.test(key))
     .reduce((env, key) => {
-      env[key] = JSON.stringify(process.env[key]);
+      env[key] = JSON.stringify(envData[key]);
       return env;
     }, {
       // Useful for determining whether we’re running in production mode.
       // Most importantly, it switches React into the correct mode.
       'NODE_ENV': JSON.stringify(
-        process.env.NODE_ENV || 'development'
+        envData.NODE_ENV || 'development'
       ),
       // Useful for resolving the correct path to static assets in `public`.
       // For example, <img src={process.env.PUBLIC_URL + '/img/logo.png'} />.
