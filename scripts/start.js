@@ -204,13 +204,13 @@ function addMiddleware(devServer) {
         proxyReq.setHeader('authorization', token);
         console.log(`requested: [${req.method}] ${req.url}`);
         console.log('query:', req.query);
-        console.log('-\n');
+        console.log('-');
       },
       onProxyRes: (proxyRes, req, res) => {
         proxyRes.on('data', (chunk) => {
           console.log(`response for: [${req.method}] ${req.url}`);
           console.log((new StringDecoder('utf8')).write(chunk));
-          console.log('-\n');
+          console.log('-');
         });
       },
       // pathRewrite: {

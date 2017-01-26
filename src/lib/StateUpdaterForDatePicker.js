@@ -257,8 +257,8 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
         gapFound = !dayData ||
           !dayData.presentSlots[hour] ||
           !~dayData.presentSlots[hour].indexOf(qMinIdx * 15);
-        if (gapFound)
-          console.log('gap found', nextMomentStr);
+        // if (gapFound)
+        //   console.log('gap found', nextMomentStr);
       } while (!gapFound && Scheduler.isAfterMin(day, hour, qMinIdx * 15, endVal));
       bookingAllowed = !gapFound;
     }

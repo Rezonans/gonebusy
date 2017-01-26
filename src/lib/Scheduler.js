@@ -21,6 +21,10 @@ moment.updateLocale(moment.locale(), {
 });
 
 class Scheduler {
+  static getCurrentMoment() {
+    return moment();
+  }
+
   static getDaysFrame(frameStartDate) {
     const mbase = moment.utc(frameStartDate);
     const result = [];
@@ -80,7 +84,7 @@ class Scheduler {
   }
 
   static getNowStr() {
-    return moment().startOf('minute').format();
+    return Scheduler.getCurrentMoment().startOf('minute').format();
   }
 
   static getNextDayString(date) {
@@ -102,7 +106,7 @@ class Scheduler {
     let result = '';
     if (dateStr) {
       const mVal = moment(dateStr);
-      const mToday = moment();
+      const mToday = Scheduler.getCurrentMoment();
       if (formatDayToString(mToday) === formatDayToString(mVal))
         result = mVal.format('ha:mm');
       else if (mToday.year() === mVal.year())
