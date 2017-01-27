@@ -1,26 +1,28 @@
 const url = require('url');
 const env = process.env;
-const reactAppServiceId = env['REACT_APP_SERVICE_ID'];
-const reactAppGonebusyToken = env['REACT_APP_GONEBUSY_TOKEN'];
-const gonebusyApiHost = env['REACT_APP_API_HOST'];
-const gonebusyApiPath = env['REACT_APP_API_PATH'];
-const gonebusyIsProxied = env['REACT_APP_IS_PROXIED'];
-const gonebusyProxyHost = env['REACT_APP_PROXY_HOST'];
 
-const is_proxied = !!(gonebusyIsProxied && JSON.parse(gonebusyIsProxied));
+const envToken = env['GONEBUSY_TOKEN'];
+const envApiHost = env['GONEBUSY_API_HOST'];
+const envApiPath = env['GONEBUSY_API_PATH'];
+const envIsProxied = env['GONEBUSY_IS_PROXIED'];
+const envProxyHost = env['GONEBUSY_PROXY_HOST'];
 
-const clientApiEndpoint = url.resolve((is_proxied ? gonebusyProxyHost : gonebusyApiHost) || '', gonebusyApiPath);
-const clientToken = is_proxied ? 'none' : reactAppGonebusyToken;
-const middlewareProxyHost = is_proxied ? gonebusyApiHost : undefined;
-const middlewareToken = is_proxied ? reactAppGonebusyToken : undefined;
+const is_proxied = !!(envIsProxied && JSON.parse(envIsProxied));
 
-console.log("to change the way we process .env so that it won't appear in plain JS", is_proxied);
+const clientApiEndpoint = url.resolve((is_proxied ? envProxyHost : envApiHost) || '', envApiPath);
+const clientToken = is_proxied ? 'none' : envToken;
+
+const middlewareProxyHost = is_proxied ? envApiHost : undefined;
+const middlewareToken = is_proxied ? envToken : undefined;
 
 module.exports = {
-  service_id: reactAppServiceId,
-  clientApiEndpoint,
-  clientToken,
-  middlewareProxyHost,
-  middlewarePath: gonebusyApiPath,
-  middlewareToken,
+  client: {
+    REACT_APP_API_ENDPOINT: clientApiEndpoint,
+    REACT_APP_TOKEN: clientToken
+  },
+  middleware: {
+    proxy: middlewareProxyHost,
+    path: envApiPath,
+    token: middlewareToken
+  }
 };

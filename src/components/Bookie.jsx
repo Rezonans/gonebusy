@@ -75,7 +75,7 @@ class Bookie extends Component {
       pickerUpdater.adjust();
       if (setLoading)
         this.setParentLoading(pickerUpdater.state().loading);
-      console.log('applying diff', diff, pickerUpdater.diff());
+      // console.log('applying diff', diff, pickerUpdater.diff());
       this.setState(pickerUpdater.diff(), () => { this.pullMissingData(); });
     }
   }

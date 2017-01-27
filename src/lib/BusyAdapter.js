@@ -2,15 +2,10 @@ import gonebusy, { CreateBookingBody } from 'gonebusy-nodejs-client/lib';
 import { Promise } from 'bluebird';
 import Scheduler from './Scheduler';
 
-import gonebusyEnv from '../../config/gonebusy_env';
-
 const ServicesController = Promise.promisifyAll(gonebusy.ServicesController);
 const BookingsController = Promise.promisifyAll(gonebusy.BookingsController);
 
-const {
-  clientToken: authorization,
-  clientApiEndpoint
-} = gonebusyEnv;
+const { REACT_APP_TOKEN: authorization, REACT_APP_API_ENDPOINT: clientApiEndpoint } = process.env;
 
 gonebusy.configuration.BASEURI = clientApiEndpoint;
 

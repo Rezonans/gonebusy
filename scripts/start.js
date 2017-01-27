@@ -156,10 +156,10 @@ function addMiddleware(devServer) {
   // `proxy` lets you to specify a fallback server during development.
   // Every unrecognized request will be forwarded to it.
 
-  const gonebusy_env = require('../config/gonebusy_env');
-  const proxy = gonebusy_env['middlewareProxyHost'];
-  const token = gonebusy_env['middlewareToken'];
-  const middlewarePath = gonebusy_env['middlewarePath'];
+  var envParams = require('../config/gonebusy_env').middleware;
+  var proxy = envParams.proxy;
+  var token = envParams.token;
+  var apiPath = envParams.path;
 
   devServer.use(historyApiFallback({
     // Paths with dots should still use the history fallback.
@@ -192,7 +192,7 @@ function addMiddleware(devServer) {
     // Tip: use https://jex.im/regulex/ to visualize the regex
     // var mayProxy = /^(?!\/(index\.html$|.*\.hot-update\.json$|sockjs-node\/)).*$/;
     // var mayProxy = /^\/api.*$/;
-    var mayProxy = new RegExp('^' + middlewarePath + '.*$');
+    var mayProxy = new RegExp('^' + apiPath + '.*$');
 
     // Pass the scope regex both to Express and to the middleware for proxying
     // of both HTTP and WebSockets to work without false positives.
@@ -204,13 +204,13 @@ function addMiddleware(devServer) {
         proxyReq.setHeader('authorization', token);
         console.log(`requested: [${req.method}] ${req.url}`);
         console.log('query:', req.query);
-        console.log('-\n');
+        console.log('-');
       },
       onProxyRes: (proxyRes, req, res) => {
         proxyRes.on('data', (chunk) => {
           console.log(`response for: [${req.method}] ${req.url}`);
           console.log((new StringDecoder('utf8')).write(chunk));
-          console.log('-\n');
+          console.log('-');
         });
       },
       // pathRewrite: {
