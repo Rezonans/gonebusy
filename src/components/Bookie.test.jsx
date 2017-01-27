@@ -23,7 +23,7 @@ it('markup matches snapshot', () => {
 
 describe('enabling bookie button', () => {
   // there's a gap on 2017-01-01 at 17:00-18:00
-  const savedState = require('./cut_response');
+  const savedState = require('./Bookie.test.data').savedState;
 
   const createBookieWithState = function(state) {
     const result = TestUtils.renderIntoDocument(<Bookie />);

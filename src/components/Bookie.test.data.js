@@ -1,4 +1,4 @@
-module.exports = {
+const savedState = {
   "initialized": true,
   "loading": false,
   "daysFrameStart": "2017-01-01",
@@ -169,4 +169,8 @@ module.exports = {
   },
   "startVal": "2017-01-01T18:15:00+02:00",
   "endVal": "2017-01-01T19:00:00+02:00",
+};
+
+module.exports = {
+  savedState
 };
