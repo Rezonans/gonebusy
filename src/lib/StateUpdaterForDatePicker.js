@@ -282,13 +282,29 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
 
   adjust() {
     this.setFlags();
+
+    console.log('-----cutoff');
+
+    ((s) => {
+      const { startValStr, endValStr, startVal, endVal } = s;
+      console.log({ startValStr, endValStr, startVal, endVal });
+    })(this.virtualState());
+
     this.rangeSwitchPickedEnd();
     this.readRangeEndValEntered();
     this.setMinMaxDateScope();
+    ((s) => {
+      const { startValStr, endValStr, startVal, endVal } = s;
+      console.log({ startValStr, endValStr, startVal, endVal });
+    })(this.virtualState());
     this.prepareDaysFrame();
     this.prepareHoursFrame();
     this.setMinutesFrameAndIdx();
     this.updateRange();
+    ((s) => {
+      const { startValStr, endValStr, startVal, endVal } = s;
+      console.log({ startValStr, endValStr, startVal, endVal });
+    })(this.virtualState());
     this.setBookingAllowed();
     this.requestDaysFetching();
     this.cleanupDiff();
