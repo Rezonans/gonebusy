@@ -19,20 +19,32 @@ it('should exists', () => {
 //   expect(tree).toMatchSnapshot();
 // });
 
-describe('enabling bookie button', () => {
+fdescribe('enabling bookie button', () => {
   // there's a gap on 2017-01-01 at 17:00-18:00
   const savedState = require('./Bookie.test.data').savedState;
 
-  const createBookieWithState = function(state) {
+  const createBookieWithState = function (state) {
     const result = TestUtils.renderIntoDocument(<Bookie />);
     result.setState(state);
     result.negotiateStateDiff({}, true);
     return result;
   }
 
-  it('is enabled for valid range', () => {
-    const bookieComponent = createBookieWithState(savedState);
-    
+  fit('is enabled for valid range', () => {
+    // const bookieComponent = createBookieWithState(savedState);
+
+    const bookieComponent = TestUtils.renderIntoDocument(<Bookie />);
+    bookieComponent.setState(require('./Bookie.test.data').savedState);
+    bookieComponent.negotiateStateDiff({
+      "dayPicked": "2017-01-01",
+      "hourPicked": 18,
+      "minutesIdxPicked": 1,
+    });
+
+    bookieComponent.negotiateStateDiff({
+      "endVal": "2017-01-01T19:00:00+02:00"
+    });
+
     // ensure booking is enabled in state
     expect(bookieComponent.state.bookingAllowed).toBe(true);
 

@@ -91,6 +91,7 @@ class Bookie extends Component {
         this.setState({ loading: true }, () => {
           BusyAdapter.getSlotsAsync(dayToFetch)
             .then((slotData) => {
+              console.log('consuming data');
               const dayData = this.state.dayData;
               const parsedData = Scheduler.getDayDataFromSlots(slotData);
               Object.assign(dayData, parsedData);

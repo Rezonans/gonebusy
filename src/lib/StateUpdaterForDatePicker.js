@@ -292,6 +292,12 @@ class StateUpdaterForDatePicker extends StateUpdaterBase {
     this.setBookingAllowed();
     this.requestDaysFetching();
     this.cleanupDiff();
+
+    // console.trace('mark here');
+    ((s) => {
+      const { startValStr, endValStr, startVal, endVal } = s;
+      console.log({ startValStr, endValStr, startVal, endVal });
+    })(this.virtualState());
   }
 }
 
