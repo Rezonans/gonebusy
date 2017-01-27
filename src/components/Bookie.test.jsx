@@ -6,12 +6,8 @@ const TestUtils = require('react-addons-test-utils');
 const Bookie = require('./Bookie').default;
 const renderer = require('react-test-renderer');
 
-const Scheduler = require('../lib/Scheduler').default;
-const moment = require('moment');
-
+jest.mock('../lib/Scheduler');
 jest.mock('../lib/BusyAdapter');
-
-Scheduler.getCurrentMoment = (() => moment('2017-01-02 17:00'));
 
 it('should exists', () => {
   const bookie = TestUtils.renderIntoDocument(<Bookie />);
